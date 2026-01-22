@@ -1,54 +1,48 @@
 {
-  "workers": {},
-  "completed": [
+  "updated": "2026-01-22T20:15:00Z",
+  "wave": 1,
+  "workers": [
     {
-      "issue": 1,
-      "title": "Project scaffolding and dependencies",
+      "id": "A",
+      "issues": [28, 29],
+      "description": "Fix images (map labels, chart formatting)",
+      "branch": "issue-28-29",
+      "pr": 34,
       "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/11"
+      "started": "2026-01-22T19:50:00Z",
+      "completed": "2026-01-22T20:15:00Z"
     },
     {
-      "issue": 2,
-      "title": "Seshat data download and raw parsing",
-      "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/21"
+      "id": "B",
+      "issues": [15],
+      "description": "Essay: The Mathematics of Societal Collapse",
+      "branch": "issue-15",
+      "worktree": ".worktrees/issue-15",
+      "status": "running",
+      "started": "2026-01-22T19:50:00Z"
     },
     {
-      "issue": 3,
-      "title": "Data access layer with query interface",
-      "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/23"
+      "id": "C",
+      "issues": [16],
+      "description": "Essay: Finding the Right Numbers - Parameter Calibration",
+      "branch": "issue-16",
+      "worktree": ".worktrees/issue-16",
+      "status": "running",
+      "started": "2026-01-22T19:50:00Z"
     },
     {
-      "issue": 4,
-      "title": "Core SDT equations implementation",
-      "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/22"
-    },
-    {
-      "issue": 5,
-      "title": "ODE solver integration and simulation runner",
-      "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/24"
-    },
-    {
-      "issue": 6,
-      "title": "Parameter calibration framework",
-      "status": "merged",
-      "pr": "direct commit to main"
-    },
-    {
-      "issue": 12,
-      "title": "GitHub Pages site setup and first essay",
-      "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/13"
-    },
-    {
-      "issue": 14,
-      "title": "Essay: The Seshat Databank",
-      "status": "merged",
-      "pr": "https://github.com/bedwards/turchin/pull/25"
+      "id": "D",
+      "issues": [26],
+      "description": "Seshat API client integration",
+      "branch": "issue-26",
+      "worktree": ".worktrees/issue-26",
+      "status": "running",
+      "started": "2026-01-22T19:50:00Z"
     }
   ],
-  "failed": []
+  "pending_wave_2": [
+    {"issue": 27, "description": "Polaris-2025 download", "depends_on": [26]},
+    {"issue": 8, "description": "US case study", "depends_on": [6]},
+    {"issue": 9, "description": "Visualization module", "depends_on": []}
+  ]
 }
