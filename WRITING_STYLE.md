@@ -154,6 +154,37 @@ Each essay must include in its frontmatter or header:
 
 This metadata appears on the GitHub Pages index and helps readers find relevant essays.
 
+## Narrative Style: Historical Storytelling
+
+### Dan Carlin Approach
+
+Interleave vivid historical narrative alongside data analysis. Like Dan Carlin's *Hardcore History*, bring historical moments to life with concrete sensory details, individual perspectives, and dramatic tension—then pivot to what the data reveals about the patterns underlying those human dramas.
+
+A passage might begin with a Roman senator watching grain ships arrive at Ostia, worrying about the mob's mood, then zoom out to show how grain imports correlate with elite competition in our SDT model. The reader experiences history as the participants did, then sees the mathematical structure beneath.
+
+### Balance of Content
+
+The essay's primary focus remains **hard data results and experiments of our own doing**. Historical narrative enriches and contextualizes that analysis but does not replace it. A rough balance:
+
+- **50-60%**: Data analysis, model results, our experiments and findings
+- **20-30%**: Historical narrative bringing the data to life
+- **15-20%**: Meta-analysis of our Claude Code process and methodology
+
+### Narrative Techniques
+
+When writing historical passages:
+- Use specific names, dates, and places—not generic descriptions
+- Include sensory details (what people saw, heard, smelled)
+- Show individual humans making decisions under uncertainty
+- Connect small-scale human moments to large-scale patterns
+- Use present tense for immediacy in narrative sections
+
+Example transition from narrative to analysis:
+
+> The senator checks the harbor manifest again. Thirty ships expected, only twelve arrived. He has seen this before—the year his father lost his seat. The mob turned on anyone who looked well-fed.
+>
+> Our data captures exactly this dynamic. Figure 3 shows grain import volatility plotted against elite turnover rates for the late Republic. The correlation coefficient of 0.73 suggests the senator's intuition was mathematically sound.
+
 ## Voice and Tone
 
 Write in first person plural ("we") when describing the project's work. This reflects the collaborative nature of the project between human and AI contributors.
