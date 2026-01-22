@@ -1,3 +1,5 @@
+.env
+
 # Worker system
 .worktrees/
 .workers/logs/
