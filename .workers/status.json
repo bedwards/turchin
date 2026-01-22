@@ -1,5 +1,18 @@
 {
   "workers": {},
-  "completed": [],
+  "completed": [
+    {
+      "issue": 1,
+      "title": "Project scaffolding and dependencies",
+      "branch": "issue-1",
+      "worktree": "/Users/bedwards/turchin/.worktrees/issue-1",
+      "status": "pr_created",
+      "started": "2026-01-22T16:51:13Z",
+      "log": "/Users/bedwards/turchin/.workers/logs/issue-1.log",
+      "pr": "https://github.com/bedwards/turchin/pull/11",
+      "completed": "2026-01-22T16:58:40Z",
+      "result": "merged"
+    }
+  ],
   "failed": []
 }
