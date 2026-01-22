@@ -1,17 +1,50 @@
 {
-  "workers": {},
+  "workers": {
+    "14": {
+      "issue": 14,
+      "title": "Essay: The Seshat Databank",
+      "branch": "issue-14",
+      "worktree": "/Users/bedwards/turchin/.worktrees/issue-14",
+      "status": "running",
+      "started": "2026-01-22T18:22:00Z"
+    }
+  },
   "completed": [
     {
       "issue": 1,
       "title": "Project scaffolding and dependencies",
-      "branch": "issue-1",
-      "worktree": "/Users/bedwards/turchin/.worktrees/issue-1",
-      "status": "pr_created",
-      "started": "2026-01-22T16:51:13Z",
-      "log": "/Users/bedwards/turchin/.workers/logs/issue-1.log",
-      "pr": "https://github.com/bedwards/turchin/pull/11",
-      "completed": "2026-01-22T16:58:40Z",
-      "result": "merged"
+      "status": "merged",
+      "pr": "https://github.com/bedwards/turchin/pull/11"
+    },
+    {
+      "issue": 12,
+      "title": "GitHub Pages site setup and first essay",
+      "status": "merged",
+      "pr": "https://github.com/bedwards/turchin/pull/13"
+    },
+    {
+      "issue": 2,
+      "title": "Seshat data download and raw parsing",
+      "status": "merged",
+      "pr": "https://github.com/bedwards/turchin/pull/21"
+    },
+    {
+      "issue": 4,
+      "title": "Core SDT equations implementation",
+      "status": "merged",
+      "pr": "https://github.com/bedwards/turchin/pull/22"
+    },
+    {
+      "issue": 3,
+      "title": "Data access layer with query interface",
+      "status": "merged",
+      "pr": "https://github.com/bedwards/turchin/pull/23"
+    },
+    {
+      "issue": 5,
+      "title": "ODE solver integration and simulation runner",
+      "status": "merged",
+      "pr": "https://github.com/bedwards/turchin/pull/24"
     }
   ],
   "failed": []
