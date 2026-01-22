@@ -3,7 +3,7 @@
 .workers/logs/
 
 # Data (large files, downloaded separately)
-data/
+/data/
 
 # Python
 __pycache__/
