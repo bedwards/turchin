@@ -2,6 +2,15 @@
 
 This project replicates Peter Turchin's cliodynamics research—mathematical modeling of historical dynamics using Structural-Demographic Theory (SDT).
 
+## Contact
+
+- **Author**: Brian Edwards
+- **Email**: brian.mabry.edwards@gmail.com
+- **Phone**: 512-584-6841
+- **Location**: Waco, Texas, USA
+- **Project Started**: January 22, 2026
+- **Built With**: Claude Code 2.1.15 (Opus 4.5)
+
 ## Goal
 
 Build a complete pipeline from historical data to instability forecasting:

@@ -116,6 +116,15 @@ scripts/
 - Turchin & Nefedov (2009). *Secular Cycles*. Princeton University Press.
 - Seshat Equinox-2020: https://doi.org/10.5281/zenodo.6642229
 
+## Contact
+
+- **Brian Edwards**
+- Email: brian.mabry.edwards@gmail.com
+- Phone: 512-584-6841
+- Waco, Texas, USA
+
+Built with Claude Code 2.1.15 (Opus 4.5), January 2026.
+
 ## License
 
 MIT
