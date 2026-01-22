@@ -77,6 +77,19 @@ GEMINI_API_KEY=your_key_here
 - Seshat Polaris-2025: https://github.com/Seshat-Global-History-Databank/build_polaris_dataset
 - Seshat Equinox-2020: https://doi.org/10.5281/zenodo.6642229
 
+## Session Roles
+
+### Manager (Orchestrator)
+The Claude Code session managing this project follows the procedures in **MANAGER_ROLE.md**, including:
+- Spawning and monitoring workers
+- Visual verification of all images/charts before merge
+- Waiting for Claude GitHub integration review
+- Maintaining project documentation
+- Ensuring stability before handoff
+
+### Worker
+Workers are one-shot Claude Code sessions spawned to implement specific issues.
+
 ## Worker Instructions
 
 You are a one-shot worker implementing a specific GitHub issue. Your responsibilities:
