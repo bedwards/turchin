@@ -641,7 +641,7 @@ class SeshatAPIClient:
         self._load_indices()
         return sorted(self._nga_index.keys())
 
-    def list_ngass(self) -> pd.DataFrame:
+    def list_ngas(self) -> pd.DataFrame:
         """
         List available NGAs (Natural Geographic Areas) with metadata.
 
