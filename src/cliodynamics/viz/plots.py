@@ -1,8 +1,11 @@
 """Time series and phase space visualization for cliodynamics analysis.
 
 This module provides publication-quality visualizations for SDT model output,
-including time series plots, phase space diagrams (2D and 3D), and
+including time series plots, phase space diagrams, and
 model vs. observed data comparison plots.
+
+All visualizations are built with Altair for consistency with the project's
+viz stack. For 3D phase space plots, see the animations module (Plotly).
 
 IMPORTANT: After generating any plot, visually verify it looks correct
 before committing. Check that labels are readable, axes are properly scaled,
@@ -13,52 +16,43 @@ Example:
     >>> from cliodynamics.simulation import SimulationResult
     >>>
     >>> # Plot time series of multiple variables
-    >>> fig = plot_time_series(
+    >>> chart = plot_time_series(
     ...     results,
     ...     variables=['N', 'W', 'psi'],
     ...     labels=['Population', 'Real Wages', 'Instability'],
     ...     title="Roman Empire 500 BCE - 500 CE"
     ... )
-    >>> fig.savefig('timeseries.png', dpi=150)
+    >>> save_chart(chart, 'timeseries.png')
     >>>
     >>> # Plot phase space diagram
-    >>> fig = plot_phase_space(results, x='W', y='psi', color_by='t')
-    >>> fig.savefig('phase_space.png', dpi=150)
+    >>> chart = plot_phase_space(results, x='W', y='psi', color_by='t')
+    >>> save_chart(chart, 'phase_space.png')
 """
 
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - required for 3D projection
+import altair as alt
+import pandas as pd
+
+from cliodynamics.viz.charts import (
+    CHART_HEIGHT_MEDIUM,
+    CHART_WIDTH,
+    FONT_SIZE_AXIS_LABEL,
+    FONT_SIZE_AXIS_TITLE,
+    FONT_SIZE_LEGEND_LABEL,
+    FONT_SIZE_LEGEND_TITLE,
+    FONT_SIZE_TITLE,
+    configure_chart,
+    save_chart,
+)
 
 if TYPE_CHECKING:
-    from pandas import DataFrame
-
     from cliodynamics.simulation import SimulationResult
 
 logger = logging.getLogger(__name__)
-
-# Standard style settings for publication quality
-STYLE_CONFIG = {
-    "figure.figsize": (10, 6),
-    "figure.dpi": 150,
-    "axes.titlesize": 14,
-    "axes.labelsize": 12,
-    "axes.linewidth": 1.0,
-    "lines.linewidth": 1.5,
-    "legend.fontsize": 10,
-    "legend.framealpha": 0.9,
-    "xtick.labelsize": 10,
-    "ytick.labelsize": 10,
-    "grid.alpha": 0.3,
-    "grid.linestyle": "--",
-}
 
 # Default color palette (colorblind-friendly)
 DEFAULT_COLORS = [
@@ -77,15 +71,9 @@ VARIABLE_LABELS = {
     "E": "Elite Population (E)",
     "W": "Real Wages (W)",
     "S": "State Fiscal Health (S)",
-    "psi": "Political Stress Index (\u03c8)",
+    "psi": "Political Stress Index (ψ)",
     "t": "Time",
 }
-
-
-def _apply_style(fig: Figure) -> None:
-    """Apply consistent styling to a figure."""
-    with plt.rc_context(STYLE_CONFIG):
-        fig.tight_layout()
 
 
 def _get_label(variable: str, custom_labels: dict[str, str] | None = None) -> str:
@@ -103,22 +91,45 @@ def _get_label(variable: str, custom_labels: dict[str, str] | None = None) -> st
     return VARIABLE_LABELS.get(variable, variable)
 
 
+def _to_dataframe(
+    results: "SimulationResult | pd.DataFrame",
+) -> pd.DataFrame:
+    """Convert SimulationResult or DataFrame to pandas DataFrame.
+
+    Args:
+        results: SimulationResult object or DataFrame.
+
+    Returns:
+        pandas DataFrame.
+    """
+    if hasattr(results, "df"):
+        df = results.df
+    else:
+        df = results
+
+    # Convert polars to pandas if needed
+    if hasattr(df, "to_pandas"):
+        df = df.to_pandas()
+
+    return df
+
+
 def plot_time_series(
-    results: SimulationResult | DataFrame,
+    results: "SimulationResult | pd.DataFrame",
     variables: list[str] | None = None,
     labels: list[str] | None = None,
     title: str = "SDT Model Time Series",
     time_column: str = "t",
-    figsize: tuple[float, float] = (10, 6),
+    figsize: tuple[float, float] | None = None,
     colors: list[str] | None = None,
     subplot_layout: bool = False,
     share_x: bool = True,
     grid: bool = True,
-) -> Figure:
+) -> alt.Chart:
     """Create time series plot of simulation results.
 
     Plots one or more variables over time, either on a single axis
-    or as vertically stacked subplots.
+    or as vertically stacked subplots (faceted chart).
 
     Args:
         results: SimulationResult object or DataFrame with time series data.
@@ -126,29 +137,25 @@ def plot_time_series(
         labels: Display labels for variables (same order as variables).
         title: Plot title.
         time_column: Name of time column in data.
-        figsize: Figure size (width, height) in inches.
+        figsize: Figure size (width, height) in inches. Converted to pixels.
         colors: Custom color list for variables.
-        subplot_layout: If True, use separate subplots for each variable.
-        share_x: If True and subplot_layout is True, share x-axis across subplots.
-        grid: If True, show grid lines.
+        subplot_layout: If True, use separate subplots (faceted) for each variable.
+        share_x: Unused in Altair (faceted charts always share x-axis).
+        grid: Unused in Altair (grid is controlled by theme).
 
     Returns:
-        Matplotlib Figure object.
+        Altair Chart object.
 
     Example:
-        >>> fig = plot_time_series(
+        >>> chart = plot_time_series(
         ...     results,
         ...     variables=['N', 'W', 'psi'],
         ...     labels=['Population', 'Real Wages', 'Instability'],
         ...     title="Roman Empire Dynamics"
         ... )
-        >>> fig.savefig('timeseries.png')
+        >>> save_chart(chart, 'timeseries.png')
     """
-    # Get DataFrame from results
-    if hasattr(results, "df"):
-        df = results.df
-    else:
-        df = results
+    df = _to_dataframe(results)
 
     # Default variables
     if variables is None:
@@ -176,63 +183,115 @@ def plot_time_series(
     elif len(colors) < len(variables):
         colors = colors + DEFAULT_COLORS[len(colors) : len(variables)]
 
-    # Get time values
-    t = df[time_column].values
+    # Calculate dimensions
+    if figsize is not None:
+        width = int(figsize[0] * 100)  # Convert inches to approx pixels
+        height = int(figsize[1] * 100)
+    else:
+        width = CHART_WIDTH
+        height = CHART_HEIGHT_MEDIUM
 
-    with plt.rc_context(STYLE_CONFIG):
-        if subplot_layout:
-            # Create stacked subplots
-            fig, axes = plt.subplots(
-                len(variables),
-                1,
-                figsize=(figsize[0], figsize[1] * len(variables) / 2),
-                sharex=share_x,
+    # Create label mapping for variables
+    label_map = dict(zip(variables, labels))
+
+    # Melt data for Altair
+    df_melted = df[[time_column] + variables].melt(
+        id_vars=[time_column], var_name="variable", value_name="value"
+    )
+
+    # Map variable names to labels
+    df_melted["label"] = df_melted["variable"].map(label_map)
+
+    # Create color scale
+    color_scale = alt.Scale(domain=labels, range=colors)
+
+    if subplot_layout:
+        # Faceted chart with separate panels
+        chart = (
+            alt.Chart(df_melted)
+            .mark_line(strokeWidth=1.5)
+            .encode(
+                x=alt.X(
+                    f"{time_column}:Q",
+                    title=_get_label(time_column),
+                    scale=alt.Scale(
+                        domain=[df[time_column].min(), df[time_column].max()]
+                    ),
+                ),
+                y=alt.Y("value:Q", title="Value"),
+                color=alt.Color(
+                    "label:N",
+                    scale=color_scale,
+                    legend=None,  # Hide legend since facet labels show variable
+                ),
             )
-            if len(variables) == 1:
-                axes = [axes]
+            .properties(
+                width=width,
+                height=height // len(variables),
+            )
+            .facet(
+                row=alt.Row(
+                    "label:N",
+                    header=alt.Header(
+                        labelFontSize=FONT_SIZE_AXIS_TITLE,
+                        labelAngle=0,
+                        labelAlign="left",
+                    ),
+                    sort=labels,  # Maintain order
+                ),
+            )
+            .properties(
+                title=alt.TitleParams(
+                    text=title, fontSize=FONT_SIZE_TITLE, anchor="start"
+                )
+            )
+            .configure_axis(
+                labelFontSize=FONT_SIZE_AXIS_LABEL,
+                titleFontSize=FONT_SIZE_AXIS_TITLE,
+            )
+        )
+    else:
+        # Single chart with all variables
+        chart = (
+            alt.Chart(df_melted)
+            .mark_line(strokeWidth=1.5)
+            .encode(
+                x=alt.X(
+                    f"{time_column}:Q",
+                    title=_get_label(time_column),
+                    scale=alt.Scale(
+                        domain=[df[time_column].min(), df[time_column].max()]
+                    ),
+                ),
+                y=alt.Y("value:Q", title="Value"),
+                color=alt.Color(
+                    "label:N",
+                    title="Variable",
+                    scale=color_scale,
+                    legend=alt.Legend(
+                        labelFontSize=FONT_SIZE_LEGEND_LABEL,
+                        titleFontSize=FONT_SIZE_LEGEND_TITLE,
+                    ),
+                ),
+            )
+        )
+        chart = configure_chart(chart, title, width=width, height=height)
 
-            for i, (var, label, color) in enumerate(zip(variables, labels, colors)):
-                ax = axes[i]
-                ax.plot(t, df[var].values, color=color, linewidth=1.5)
-                ax.set_ylabel(label)
-                if grid:
-                    ax.grid(True, alpha=0.3, linestyle="--")
-                ax.set_xlim(t[0], t[-1])
-
-            axes[-1].set_xlabel(_get_label(time_column))
-            axes[0].set_title(title, fontsize=14)
-        else:
-            # Single plot with all variables
-            fig, ax = plt.subplots(figsize=figsize)
-
-            for var, label, color in zip(variables, labels, colors):
-                ax.plot(t, df[var].values, color=color, label=label, linewidth=1.5)
-
-            ax.set_xlabel(_get_label(time_column))
-            ax.set_ylabel("Value")
-            ax.set_title(title, fontsize=14)
-            ax.legend(loc="best")
-            ax.set_xlim(t[0], t[-1])
-            if grid:
-                ax.grid(True, alpha=0.3, linestyle="--")
-
-        fig.tight_layout()
-
-    return fig
+    return chart
 
 
 def plot_phase_space(
-    results: SimulationResult | DataFrame,
+    results: "SimulationResult | pd.DataFrame",
     x: str,
     y: str,
     color_by: str | None = "t",
     title: str | None = None,
-    figsize: tuple[float, float] = (8, 6),
+    figsize: tuple[float, float] | None = None,
     colormap: str = "viridis",
     show_start: bool = True,
     show_end: bool = True,
     arrow_interval: int | None = None,
-) -> Figure:
+) -> alt.Chart:
     """Create 2D phase space diagram.
 
     Plots trajectory of two variables against each other to show
@@ -246,23 +305,19 @@ def plot_phase_space(
             If None, uses solid color.
         title: Plot title. Defaults to auto-generated title.
         figsize: Figure size (width, height) in inches.
-        colormap: Matplotlib colormap name for trajectory color.
+        colormap: Color scheme name for trajectory color.
         show_start: If True, mark starting point with circle.
         show_end: If True, mark ending point with square.
-        arrow_interval: If set, add direction arrows every N points.
+        arrow_interval: Unused in Altair (arrows not supported natively).
 
     Returns:
-        Matplotlib Figure object.
+        Altair Chart object.
 
     Example:
-        >>> fig = plot_phase_space(results, x='W', y='psi', color_by='t')
-        >>> fig.savefig('phase_space.png')
+        >>> chart = plot_phase_space(results, x='W', y='psi', color_by='t')
+        >>> save_chart(chart, 'phase_space.png')
     """
-    # Get DataFrame from results
-    if hasattr(results, "df"):
-        df = results.df
-    else:
-        df = results
+    df = _to_dataframe(results)
 
     # Validate variables
     for var in [x, y]:
@@ -276,228 +331,111 @@ def plot_phase_space(
             f"Color variable '{color_by}' not in columns: {df.columns.tolist()}"
         )
 
-    x_vals = df[x].values
-    y_vals = df[y].values
-
-    with plt.rc_context(STYLE_CONFIG):
-        fig, ax = plt.subplots(figsize=figsize)
-
-        if color_by is not None:
-            # Color-coded trajectory
-            c_vals = df[color_by].values
-            points = np.array([x_vals, y_vals]).T.reshape(-1, 1, 2)
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-            from matplotlib.collections import LineCollection
-
-            norm = plt.Normalize(c_vals.min(), c_vals.max())
-            lc = LineCollection(segments, cmap=colormap, norm=norm)
-            lc.set_array(c_vals[:-1])
-            lc.set_linewidth(1.5)
-            line = ax.add_collection(lc)
-
-            fig.colorbar(line, ax=ax, label=_get_label(color_by))
-        else:
-            # Solid color trajectory
-            ax.plot(x_vals, y_vals, color=DEFAULT_COLORS[0], linewidth=1.5)
-
-        # Mark start and end points
-        if show_start:
-            ax.scatter(
-                [x_vals[0]],
-                [y_vals[0]],
-                color="green",
-                s=100,
-                marker="o",
-                zorder=5,
-                label="Start",
-            )
-        if show_end:
-            ax.scatter(
-                [x_vals[-1]],
-                [y_vals[-1]],
-                color="red",
-                s=100,
-                marker="s",
-                zorder=5,
-                label="End",
-            )
-
-        # Add direction arrows
-        if arrow_interval is not None and arrow_interval > 0:
-            for i in range(arrow_interval, len(x_vals) - 1, arrow_interval):
-                dx = x_vals[i + 1] - x_vals[i]
-                dy = y_vals[i + 1] - y_vals[i]
-                ax.annotate(
-                    "",
-                    xy=(x_vals[i] + dx * 0.5, y_vals[i] + dy * 0.5),
-                    xytext=(x_vals[i], y_vals[i]),
-                    arrowprops=dict(arrowstyle="->", color="gray", lw=1),
-                )
-
-        ax.set_xlabel(_get_label(x))
-        ax.set_ylabel(_get_label(y))
-
-        if title is None:
-            title = f"Phase Space: {_get_label(x)} vs {_get_label(y)}"
-        ax.set_title(title, fontsize=14)
-
-        if show_start or show_end:
-            ax.legend(loc="best")
-
-        ax.autoscale()
-        ax.set_aspect("auto")
-        fig.tight_layout()
-
-    return fig
-
-
-def plot_phase_space_3d(
-    results: SimulationResult | DataFrame,
-    x: str,
-    y: str,
-    z: str,
-    color_by: str | None = "t",
-    title: str | None = None,
-    figsize: tuple[float, float] = (10, 8),
-    colormap: str = "viridis",
-    elevation: float = 20,
-    azimuth: float = 45,
-    show_start: bool = True,
-    show_end: bool = True,
-) -> Figure:
-    """Create 3D phase space diagram.
-
-    Plots trajectory of three variables to visualize higher-dimensional
-    dynamical behavior.
-
-    Args:
-        results: SimulationResult object or DataFrame with time series data.
-        x: Variable name for x-axis.
-        y: Variable name for y-axis.
-        z: Variable name for z-axis.
-        color_by: Variable to color trajectory by. If None, uses solid color.
-        title: Plot title. Defaults to auto-generated title.
-        figsize: Figure size (width, height) in inches.
-        colormap: Matplotlib colormap name for trajectory color.
-        elevation: Viewing elevation angle in degrees.
-        azimuth: Viewing azimuth angle in degrees.
-        show_start: If True, mark starting point.
-        show_end: If True, mark ending point.
-
-    Returns:
-        Matplotlib Figure object.
-
-    Example:
-        >>> fig = plot_phase_space_3d(results, x='N', y='W', z='psi')
-        >>> fig.savefig('phase_space_3d.png')
-    """
-    # Get DataFrame from results
-    if hasattr(results, "df"):
-        df = results.df
+    # Calculate dimensions
+    if figsize is not None:
+        width = int(figsize[0] * 100)
+        height = int(figsize[1] * 100)
     else:
-        df = results
+        width = CHART_WIDTH
+        height = CHART_HEIGHT_MEDIUM
 
-    # Validate variables
-    for var in [x, y, z]:
-        if var not in df.columns:
-            raise ValueError(
-                f"Variable '{var}' not in data columns: {df.columns.tolist()}"
+    if title is None:
+        title = f"Phase Space: {_get_label(x)} vs {_get_label(y)}"
+
+    # Create line chart for trajectory
+    if color_by is not None:
+        # Color-coded trajectory using line with detail encoding
+        # We need to use a trick: sort by color_by and use order
+        line = (
+            alt.Chart(df)
+            .mark_trail(strokeWidth=2)
+            .encode(
+                x=alt.X(f"{x}:Q", title=_get_label(x)),
+                y=alt.Y(f"{y}:Q", title=_get_label(y)),
+                color=alt.Color(
+                    f"{color_by}:Q",
+                    title=_get_label(color_by),
+                    scale=alt.Scale(scheme=colormap),
+                    legend=alt.Legend(
+                        labelFontSize=FONT_SIZE_LEGEND_LABEL,
+                        titleFontSize=FONT_SIZE_LEGEND_TITLE,
+                    ),
+                ),
+                order=alt.Order(f"{color_by}:Q"),
+                size=alt.value(2),
             )
-
-    if color_by is not None and color_by not in df.columns:
-        raise ValueError(
-            f"Color variable '{color_by}' not in columns: {df.columns.tolist()}"
         )
-
-    x_vals = df[x].values
-    y_vals = df[y].values
-    z_vals = df[z].values
-
-    with plt.rc_context(STYLE_CONFIG):
-        fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(111, projection="3d")
-
-        if color_by is not None:
-            # Color-coded trajectory using scatter for 3D
-            c_vals = df[color_by].values
-            # Plot line segments with color gradient
-            cmap = plt.colormaps.get_cmap(colormap)
-            for i in range(len(x_vals) - 1):
-                ax.plot(
-                    x_vals[i : i + 2],
-                    y_vals[i : i + 2],
-                    z_vals[i : i + 2],
-                    color=cmap(c_vals[i] / c_vals.max()),
-                    linewidth=1.5,
+    else:
+        # Solid color trajectory
+        line = (
+            alt.Chart(df)
+            .mark_line(strokeWidth=1.5, color=DEFAULT_COLORS[0])
+            .encode(
+                x=alt.X(f"{x}:Q", title=_get_label(x)),
+                y=alt.Y(f"{y}:Q", title=_get_label(y)),
+                order=alt.Order("index:O") if "index" in df.columns else alt.Order(),
+            )
+        )
+        # Add index for ordering if not present
+        if "index" not in df.columns:
+            df = df.reset_index()
+            line = (
+                alt.Chart(df)
+                .mark_line(strokeWidth=1.5, color=DEFAULT_COLORS[0])
+                .encode(
+                    x=alt.X(f"{x}:Q", title=_get_label(x)),
+                    y=alt.Y(f"{y}:Q", title=_get_label(y)),
+                    order=alt.Order("index:O"),
                 )
-
-            # Add colorbar
-            from matplotlib.cm import ScalarMappable
-
-            mappable = ScalarMappable(
-                norm=plt.Normalize(c_vals.min(), c_vals.max()),
-                cmap=colormap,
-            )
-            mappable.set_array([])
-            fig.colorbar(mappable, ax=ax, shrink=0.6, label=_get_label(color_by))
-        else:
-            # Solid color trajectory
-            ax.plot(x_vals, y_vals, z_vals, color=DEFAULT_COLORS[0], linewidth=1.5)
-
-        # Mark start and end points
-        if show_start:
-            ax.scatter(
-                [x_vals[0]],
-                [y_vals[0]],
-                [z_vals[0]],
-                color="green",
-                s=100,
-                marker="o",
-                label="Start",
-            )
-        if show_end:
-            ax.scatter(
-                [x_vals[-1]],
-                [y_vals[-1]],
-                [z_vals[-1]],
-                color="red",
-                s=100,
-                marker="s",
-                label="End",
             )
 
-        ax.set_xlabel(_get_label(x))
-        ax.set_ylabel(_get_label(y))
-        ax.set_zlabel(_get_label(z))
+    layers = [line]
 
-        if title is None:
-            title = f"3D Phase Space: {x}, {y}, {z}"
-        ax.set_title(title, fontsize=14)
+    # Add start point marker
+    if show_start:
+        start_df = df.iloc[[0]]
+        start_point = (
+            alt.Chart(start_df)
+            .mark_point(size=100, color="green", filled=True)
+            .encode(
+                x=alt.X(f"{x}:Q"),
+                y=alt.Y(f"{y}:Q"),
+            )
+        )
+        layers.append(start_point)
 
-        ax.view_init(elev=elevation, azim=azimuth)
+    # Add end point marker
+    if show_end:
+        end_df = df.iloc[[-1]]
+        end_point = (
+            alt.Chart(end_df)
+            .mark_point(size=100, color="red", shape="square", filled=True)
+            .encode(
+                x=alt.X(f"{x}:Q"),
+                y=alt.Y(f"{y}:Q"),
+            )
+        )
+        layers.append(end_point)
 
-        if show_start or show_end:
-            ax.legend(loc="best")
+    chart = alt.layer(*layers)
+    chart = configure_chart(chart, title, width=width, height=height)
 
-        fig.tight_layout()
-
-    return fig
+    return chart
 
 
 def plot_comparison(
-    model_results: SimulationResult | DataFrame,
-    observed_data: DataFrame,
+    model_results: "SimulationResult | pd.DataFrame",
+    observed_data: pd.DataFrame,
     variables: list[str],
     time_column: str = "t",
     labels: list[str] | None = None,
     title: str = "Model vs Observed Data",
-    figsize: tuple[float, float] = (10, 6),
+    figsize: tuple[float, float] | None = None,
     confidence_bands: bool = False,
     confidence_columns: dict[str, tuple[str, str]] | None = None,
     observed_marker: str = "o",
     model_style: str = "-",
-) -> Figure:
+) -> alt.Chart:
     """Create comparison plot of model results and observed data.
 
     Plots model predictions alongside historical observations to assess
@@ -514,26 +452,23 @@ def plot_comparison(
         confidence_bands: If True, show confidence bands around model.
         confidence_columns: Dict mapping variable to (lower, upper) column names
             for confidence bands. Required if confidence_bands is True.
-        observed_marker: Marker style for observed data points.
-        model_style: Line style for model output.
+        observed_marker: Unused in Altair (fixed marker style).
+        model_style: Unused in Altair (fixed line style).
 
     Returns:
-        Matplotlib Figure object.
+        Altair Chart object.
 
     Example:
-        >>> fig = plot_comparison(
+        >>> chart = plot_comparison(
         ...     model_results=simulation,
         ...     observed_data=historical,
         ...     variables=['N', 'psi'],
         ...     confidence_bands=True
         ... )
-        >>> fig.savefig('comparison.png')
+        >>> save_chart(chart, 'comparison.png')
     """
-    # Get DataFrame from results
-    if hasattr(model_results, "df"):
-        model_df = model_results.df
-    else:
-        model_df = model_results
+    model_df = _to_dataframe(model_results)
+    observed_df = _to_dataframe(observed_data)
 
     # Default labels
     if labels is None:
@@ -543,145 +478,124 @@ def plot_comparison(
     if confidence_bands and confidence_columns is None:
         raise ValueError("confidence_columns required when confidence_bands is True")
 
-    with plt.rc_context(STYLE_CONFIG):
-        fig, axes = plt.subplots(
-            len(variables),
-            1,
-            figsize=(figsize[0], figsize[1] * len(variables) / 2),
-            sharex=True,
-        )
-        if len(variables) == 1:
-            axes = [axes]
+    # Calculate dimensions
+    if figsize is not None:
+        width = int(figsize[0] * 100)
+        base_height = int(figsize[1] * 100)
+    else:
+        width = CHART_WIDTH
+        base_height = CHART_HEIGHT_MEDIUM
 
-        for i, (var, label) in enumerate(zip(variables, labels)):
-            ax = axes[i]
-            color = DEFAULT_COLORS[i % len(DEFAULT_COLORS)]
+    # Height per variable panel
+    panel_height = max(200, base_height // len(variables))
 
-            # Validate variable exists
-            if var not in model_df.columns:
-                raise ValueError(f"Variable '{var}' not found in model data")
+    charts_list = []
 
-            # Plot model output
-            model_t = model_df[time_column].values
-            model_y = model_df[var].values
-            ax.plot(
-                model_t,
-                model_y,
-                model_style,
-                color=color,
-                label="Model",
-                linewidth=1.5,
+    for i, (var, label) in enumerate(zip(variables, labels)):
+        color = DEFAULT_COLORS[i % len(DEFAULT_COLORS)]
+
+        # Validate variable exists in model data
+        if var not in model_df.columns:
+            raise ValueError(f"Variable '{var}' not found in model data")
+
+        layers = []
+
+        # Model line
+        model_line = (
+            alt.Chart(model_df)
+            .mark_line(strokeWidth=1.5, color=color)
+            .encode(
+                x=alt.X(
+                    f"{time_column}:Q",
+                    title=_get_label(time_column) if i == len(variables) - 1 else "",
+                ),
+                y=alt.Y(f"{var}:Q", title=label),
             )
+        )
+        layers.append(model_line)
 
-            # Plot confidence bands if requested
-            if confidence_bands and var in confidence_columns:
-                lower_col, upper_col = confidence_columns[var]
-                lower = model_df[lower_col].values
-                upper = model_df[upper_col].values
-                ax.fill_between(
-                    model_t, lower, upper, color=color, alpha=0.2, label="95% CI"
+        # Confidence bands
+        if confidence_bands and var in confidence_columns:
+            lower_col, upper_col = confidence_columns[var]
+            band = (
+                alt.Chart(model_df)
+                .mark_area(opacity=0.2, color=color)
+                .encode(
+                    x=alt.X(f"{time_column}:Q"),
+                    y=alt.Y(f"{lower_col}:Q"),
+                    y2=alt.Y2(f"{upper_col}:Q"),
                 )
+            )
+            layers.insert(0, band)  # Put band behind line
 
-            # Plot observed data if variable exists
-            if var in observed_data.columns:
-                obs_t = observed_data[time_column].values
-                obs_y = observed_data[var].values
-                # Filter out NaN values
-                mask = ~np.isnan(obs_y)
-                ax.scatter(
-                    obs_t[mask],
-                    obs_y[mask],
-                    marker=observed_marker,
-                    color=color,
-                    facecolors="none",
-                    s=50,
-                    label="Observed",
-                    linewidths=1.5,
+        # Observed data points
+        if var in observed_df.columns:
+            # Filter NaN values
+            obs_valid = observed_df[[time_column, var]].dropna()
+            if len(obs_valid) > 0:
+                obs_points = (
+                    alt.Chart(obs_valid)
+                    .mark_point(
+                        size=50,
+                        color=color,
+                        filled=False,
+                        strokeWidth=1.5,
+                    )
+                    .encode(
+                        x=alt.X(f"{time_column}:Q"),
+                        y=alt.Y(f"{var}:Q"),
+                    )
                 )
+                layers.append(obs_points)
 
-            ax.set_ylabel(label)
-            ax.legend(loc="best")
-            ax.grid(True, alpha=0.3, linestyle="--")
+        panel = alt.layer(*layers).properties(
+            width=width,
+            height=panel_height,
+        )
+        charts_list.append(panel)
 
-        axes[-1].set_xlabel(_get_label(time_column))
-        axes[0].set_title(title, fontsize=14)
-        fig.tight_layout()
+    # Stack vertically
+    chart = (
+        alt.vconcat(*charts_list)
+        .properties(
+            title=alt.TitleParams(text=title, fontSize=FONT_SIZE_TITLE, anchor="start")
+        )
+        .configure_axis(
+            labelFontSize=FONT_SIZE_AXIS_LABEL,
+            titleFontSize=FONT_SIZE_AXIS_TITLE,
+        )
+        .configure_legend(
+            labelFontSize=FONT_SIZE_LEGEND_LABEL,
+            titleFontSize=FONT_SIZE_LEGEND_TITLE,
+        )
+    )
 
-    return fig
-
-
-def save_figure(
-    fig: Figure,
-    path: str | Path,
-    dpi: int = 150,
-    formats: list[str] | None = None,
-) -> list[Path]:
-    """Save figure to file(s) in specified format(s).
-
-    Args:
-        fig: Matplotlib Figure object to save.
-        path: Output file path. Extension determines format if formats not specified.
-        dpi: Resolution for raster formats (PNG).
-        formats: List of formats to save. If None, uses path extension.
-            Supported: 'png', 'svg', 'pdf'.
-
-    Returns:
-        List of saved file paths.
-
-    Example:
-        >>> save_figure(fig, 'output.png')
-        [PosixPath('output.png')]
-        >>> save_figure(fig, 'output', formats=['png', 'svg', 'pdf'])
-        [PosixPath('output.png'), PosixPath('output.svg'), PosixPath('output.pdf')]
-    """
-    path = Path(path)
-
-    if formats is None:
-        formats = [path.suffix.lstrip(".") if path.suffix else "png"]
-
-    saved_paths = []
-    for fmt in formats:
-        fmt = fmt.lower().lstrip(".")
-        if fmt not in ("png", "svg", "pdf"):
-            raise ValueError(f"Unsupported format: {fmt}. Use png, svg, or pdf.")
-
-        output_path = path.with_suffix(f".{fmt}")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if fmt == "png":
-            fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
-        else:
-            fig.savefig(output_path, bbox_inches="tight")
-
-        logger.info(f"Figure saved to {output_path}")
-        saved_paths.append(output_path)
-
-    # Verification reminder
-    print(VERIFICATION_REMINDER)
-    return saved_paths
+    return chart
 
 
-# Verification reminder
-VERIFICATION_REMINDER = """
-=====================================================================
-  IMPORTANT: Visually verify all plots before committing!
-
-  Check that:
-  1. All text is readable (not too small)
-  2. Axes labels are correct and not cut off
-  3. Legend is visible and correctly positioned
-  4. Data is plotted correctly without artifacts
-  5. Colors are distinguishable
-=====================================================================
-"""
-
-
+# Re-export save_chart from charts module for convenience
 __all__ = [
     "plot_time_series",
     "plot_phase_space",
-    "plot_phase_space_3d",
     "plot_comparison",
-    "save_figure",
+    "save_chart",
     "VARIABLE_LABELS",
     "DEFAULT_COLORS",
 ]
+
+# Backward compatibility for animations module (still uses matplotlib)
+# These are exported but not used by the Altair-based functions in this module
+STYLE_CONFIG = {
+    "figure.figsize": (10, 6),
+    "figure.dpi": 150,
+    "axes.titlesize": 14,
+    "axes.labelsize": 12,
+    "axes.linewidth": 1.0,
+    "lines.linewidth": 1.5,
+    "legend.fontsize": 10,
+    "legend.framealpha": 0.9,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "grid.alpha": 0.3,
+    "grid.linestyle": "--",
+}
