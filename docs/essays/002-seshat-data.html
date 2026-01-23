@@ -46,7 +46,7 @@
                 <p>The Seshat Global History Databank represents the most ambitious attempt to date to answer this question affirmatively. Named after the ancient Egyptian goddess of knowledge, wisdom, and record-keeping, Seshat is a collaborative project that has assembled quantitative data on hundreds of variables for hundreds of societies spanning more than ten thousand years of human history. The project brings together historians, archaeologists, anthropologists, and data scientists from dozens of institutions around the world, each contributing expertise on particular regions, time periods, or types of evidence. The result is a resource of unprecedented scope and detail, one that makes it possible for the first time to test theories about historical dynamics against systematic evidence from societies across the globe and across the millennia. In this essay, we explore what Seshat is, how it was built, what it contains, how we have accessed and processed it for our cliodynamics replication project, and what challenges and limitations we have encountered along the way.</p>
 
                 <figure>
-                    <img src="../assets/images/ancient-scribes.png" alt="Ancient scribes recording history in a grand library">
+                    <img src="../assets/images/ancient-scribes.jpg" alt="Ancient scribes recording history in a grand library">
                     <figcaption>Throughout human history, scribes have preserved knowledge for future generations. The Seshat project continues this tradition by systematically encoding historical information in a form that allows quantitative analysis across thousands of years and hundreds of societies. The goddess Seshat herself was depicted in ancient Egypt as the divine recorder who tracked the passage of time and the reigns of pharaohs.</figcaption>
                 </figure>
 
@@ -61,7 +61,7 @@
                 <p>The variables in Seshat are organized into several broad categories that reflect different aspects of social organization. Social complexity variables capture features like the number of levels in administrative hierarchies, the population of the largest settlement, and the existence of writing systems and record-keeping practices. Economic variables track features like the presence of markets, the use of money, and the development of specialized crafts and industries. Military variables record information about army organization, military technology, and fortification practices. Religious variables capture features like the presence of moralizing high gods and the institutionalization of religious hierarchies. Political variables track features like the formalization of legal codes and the presence of professional bureaucracies. This comprehensive coverage makes it possible to analyze how different aspects of social organization relate to one another and how they change together over time.</p>
 
                 <figure>
-                    <img src="../assets/images/global-map-seshat.png" alt="Global map showing Seshat coverage">
+                    <img src="../assets/images/global-map-seshat.jpg" alt="Global map showing Seshat coverage">
                     <figcaption>The Seshat database covers societies from every inhabited continent, from the earliest complex societies of Mesopotamia and Egypt through the great empires of Rome, China, and the Islamic world, to smaller-scale societies in Africa, the Americas, and Oceania. This global coverage allows researchers to test whether patterns observed in one region also appear elsewhere, distinguishing universal dynamics from culturally specific phenomena.</figcaption>
                 </figure>
 
@@ -83,7 +83,7 @@
                 <p>The process of downloading and parsing this data revealed several challenges that are worth documenting for others who might work with Seshat. The Zenodo API, which provides programmatic access to the dataset, has rate limits that can cause downloads to fail if attempted too frequently. We encountered this issue initially and solved it by downloading directly from the Seshat GitHub repository, which hosts a copy of the same data. The Excel file format, while convenient for human inspection, requires specialized libraries for programmatic access. We used the pandas library in Python, which provides excellent Excel support through the openpyxl backend. However, reading the full workbook takes several seconds due to its size and complexity, so we implemented caching to avoid repeated parsing.</p>
 
                 <figure>
-                    <img src="../assets/images/data-pipeline.png" alt="Data flowing through a processing pipeline">
+                    <img src="../assets/images/data-pipeline.jpg" alt="Data flowing through a processing pipeline">
                     <figcaption>Processing historical data requires transforming information from its original form, whether clay tablets, papyrus scrolls, or archaeological excavation reports, into standardized digital representations that can be analyzed computationally. The Seshat project represents one end of this pipeline, encoding expert historical knowledge into structured data, while our cliodynamics tools represent the analytical stage that extracts patterns and tests theories.</figcaption>
                 </figure>
 
