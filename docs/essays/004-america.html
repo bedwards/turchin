@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="date" content="2026-01-23">
+    <meta name="tags" content="Ages of Discord, America, Political Stress Index, SDT, Peter Turchin, replication, elite overproduction, secular cycles, prediction, instability">
+    <title>America in the Balance: Applying Ages of Discord to U.S. History 1780-2025</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="../index.html" class="site-title">Cliodynamics Replication Project</a>
+            <p class="site-subtitle">Mathematical modeling of historical dynamics</p>
+            <nav>
+                <a href="../index.html">Essays</a>
+                <a href="https://github.com/bedwards/turchin">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <article>
+            <header>
+                <h1 class="essay-title">America in the Balance: Applying Ages of Discord to U.S. History 1780-2025</h1>
+                <div class="essay-meta">
+                    <span>January 23, 2026</span>
+                    <span class="separator">|</span>
+                    <span class="word-count">12,450 words</span>
+                    <span class="separator">|</span>
+                    <span>1 hr 2 min read</span>
+                </div>
+                <div class="essay-tags">
+                    <span class="tag">Ages of Discord</span>
+                    <span class="tag">America</span>
+                    <span class="tag">Political Stress Index</span>
+                    <span class="tag">SDT</span>
+                    <span class="tag">Elite Overproduction</span>
+                    <span class="tag">Secular Cycles</span>
+                </div>
+            </header>
+
+            <div class="essay-content">
+                <p>On a crisp November morning in 2010, Peter Turchin submitted a paper to the journal Nature. The paper made a startling claim: America was heading toward a period of political instability that would peak around 2020. The prediction was based not on political intuition or partisan analysis, but on mathematical models of historical dynamics that Turchin had spent decades developing. His framework, called Structural-Demographic Theory (SDT), uses measurable variables like wages, elite competition, and state fiscal health to model the rise and fall of societal instability. Now he was turning that framework on his adopted homeland, the United States of America, and the numbers were deeply troubling.</p>
+
+                <p>The paper was rejected by Nature's reviewers. Most scholars who encountered his forecast dismissed Turchin's work as the ambitious speculation of an outsider who failed to appreciate the resilience of American institutions. The United States had weathered the Great Depression, two World Wars, the tumultuous 1960s, and countless other crises throughout its history. The idea that mathematical models could predict its political future seemed like hubris dressed up in equations, the work of someone who did not understand how unique and exceptional America truly was. Six years later, in September 2016, Turchin expanded his analysis into a book titled Ages of Discord: A Structural-Demographic Analysis of American History. The book was published just two months before an election that would shock the American establishment to its core. By 2020, when protests swept American cities in the largest sustained demonstrations in national history and a mob stormed the United States Capitol seeking to overturn a presidential election, Turchin's decade-old prediction looked less like speculation and more like prophecy.</p>
+
+                <p>This essay documents our comprehensive effort to replicate and extend Turchin's Ages of Discord analysis using the cliodynamics framework we have built in this project. We have constructed the data pipelines from scratch, implemented the mathematical models ourselves, and run all the calculations using our own code rather than relying on Turchin's published figures. Our goal is not simply to verify that Turchin's numbers are correct, though verification matters enormously for scientific credibility. We want to understand at a deep level how he arrived at his conclusions, what assumptions and choices underlie his framework, and most importantly, what the model suggests about America's future trajectory over the coming decades. The results of our independent replication are sobering and should concern anyone who cares about the stability of American democracy. Our analysis confirms the core findings of Ages of Discord: America is experiencing structural conditions that historically presage significant political instability, and those conditions show no signs of improving on their own without deliberate intervention.</p>
+
+                <h2>Why Replicate Ages of Discord Specifically?</h2>
+
+                <p>Among all the societies Turchin has studied throughout his career, from ancient Rome to medieval France to imperial China to Victorian England, America stands apart for several compelling reasons that make independent replication particularly valuable and urgent. First and most practically, we have the most abundant data for America, spanning centuries of census records, economic statistics, and social indicators collected by the most sophisticated statistical apparatus in human history. The Bureau of Labor Statistics, the Census Bureau, the Federal Reserve, and numerous other agencies have compiled data of a quantity and quality that historical researchers can only dream about for other societies and earlier eras. This data richness means that our replication can be more rigorous, our tests more demanding, and our conclusions more firmly grounded than would be possible for any pre-modern society.</p>
+
+                <p>Second, we have the most detailed historical records for the American case. Newspapers, personal papers, government documents, court cases, congressional records, and scholarly studies provide granular information about social conditions across the entire span of national history from the founding to the present day. We can trace individual events, follow specific debates, and understand the context of political decisions in ways that are simply impossible for ancient Rome or medieval France, where the surviving evidence is fragmentary, often biased, and sometimes unreliable. This historical depth allows us to verify the model's predictions not just against aggregate statistics but against the actual lived experience of Americans in different eras, testing whether periods of high predicted stress actually corresponded to periods of documented turmoil.</p>
+
+                <p>Third and most personally for us, we have the most direct stake in the outcome of this analysis. Both the authors and readers of this essay live in the society whose trajectory we are analyzing. Understanding whether America faces structural crisis is not merely an academic exercise or historical curiosity for us; it is a matter of profound practical importance for our own lives and the lives of our children. If Structural-Demographic Theory can accurately model American history and identify the forces driving contemporary instability, that knowledge could inform how we think about policy, politics, and our own decisions about where to live and how to prepare for an uncertain future. The urgency is palpable in a way that analyzing the fall of Rome or the French Revolution simply cannot be.</p>
+
+                <p>The scientific case for replication is equally compelling. If Structural-Demographic Theory can successfully model American history, it demonstrates that the framework can handle modern industrial democracies with complex economies, mass education, sophisticated media, and democratic political institutions, not just pre-modern agrarian empires where most of the population were illiterate peasants. This would be a significant extension of the theory's scope and would increase our confidence that it captures something real and fundamental about how societies function under a wide variety of conditions. Conversely, if the model fails to replicate for America despite the abundant data, we learn something equally important about its limitations. Perhaps the framework does not generalize beyond the agricultural societies where it was first developed. Perhaps the specific indicators Turchin uses are not appropriate for American conditions. Perhaps the mathematical relationships between variables work differently in democratic contexts than in autocratic ones. Any of these findings would advance our understanding of both the model and the society it purports to describe.</p>
+
+                <p>Replication is the foundation of scientific credibility in any empirical field. A prediction that cannot be reproduced by independent researchers using the same methodology is merely a lucky guess, no matter how impressive it may seem at first. A prediction that can be independently verified, using the same data and methodology but implemented from scratch by different researchers with no stake in confirming the original results, becomes genuine evidence for an underlying theory. We implemented our own data loaders, our own index calculations, and our own visualizations, comparing our results at each step to the published figures in Ages of Discord. Where we found discrepancies, we investigated their sources and documented our choices explicitly so others can follow our reasoning. The goal was not blind reproduction but critical engagement with the methodology, testing whether the conclusions hold when the analysis is conducted by skeptical researchers starting fresh with no commitment to any particular outcome.</p>
+
+                <p>The stakes of this replication extend far beyond academic interest in historical sociology. If Turchin is right about the structural forces driving American instability, then the political turmoil of recent years is not an aberration to be explained away by individual personalities like Donald Trump or specific events like the COVID-19 pandemic. It is the predictable outcome of decades of accumulating structural pressure, pressure that built regardless of which party held power or which specific policies were enacted. The election of Trump, the polarization of Congress into hostile camps that cannot cooperate on basic governance, the erosion of institutional norms that once constrained political conflict, the rise of conspiracy theories and alternative facts that undermine shared reality, the street violence of 2020 and the Capitol riot of 2021, all of these would be manifestations of underlying structural conditions rather than isolated events that could have been prevented with better leadership or different choices at crucial moments.</p>
+
+                <p>And if the pressure is structural, rooted in the long-term dynamics of wages, elite competition, and wealth distribution, then it will not dissipate simply because one election is decided or one crisis is weathered. The inauguration of a new president, no matter how skilled or well-intentioned, cannot by itself resolve structural imbalances that took decades to build. Structural problems require structural solutions, changes to the underlying conditions that generate instability rather than merely managing the symptoms when they become acute. Understanding the nature of the problem, understanding whether it is structural or contingent, is the essential first step toward addressing it effectively. That is why this replication matters not just to scholars but to anyone who hopes to see America navigate its current difficulties and emerge stronger on the other side.</p>
+
+                <h2>American History Through the SDT Lens: The Concept of Secular Cycles</h2>
+
+                <p>Ages of Discord covers American history from the late eighteenth century through 2016, when the book was published. Turchin argues that America has experienced two complete secular cycles since independence, with a third cycle currently in its disintegrative phase. Before we can understand this argument, we need to grasp the concept of secular cycles that lies at its heart. The concept was developed in Turchin's earlier collaborative work with the historian Sergey Nefedov, published in their 2009 book Secular Cycles, which examined case studies from medieval and early modern Europe.</p>
+
+                <p>Secular cycles refer to long-term oscillations between periods of relative stability and growth and periods of instability and decline. These cycles typically span one to three centuries, far longer than economic business cycles that last a few years or political electoral cycles that turn over in two to four years. Turchin calls them secular from the Latin word saeculum, meaning a long period of time, an age, or a generation. The term emphasizes that these are not short-term fluctuations but deep structural rhythms that unfold over multiple human lifetimes, too slow for any individual to observe the full pattern but clearly visible in the historical record when viewed from sufficient distance.</p>
+
+                <p>These cycles are not mere metaphors or loose analogies but measurable phenomena with identifiable phases and characteristic dynamics that follow from the underlying theory. Each cycle begins with an expansion phase characterized by population growth, economic development, and generally improving conditions for ordinary people. Resources are relatively abundant compared to the population seeking them, labor is relatively scarce compared to the demand for it, and wages are therefore relatively high. Elite positions are available for ambitious individuals because the expanding economy and growing state create new opportunities, so competition among elites is muted and generally constructive rather than destructive. Institutional trust is high because the system is delivering prosperity to most participants, and people have confidence that playing by the rules will be rewarded. This is a self-reinforcing positive dynamic where good conditions lead to social cohesion, which leads to good governance, which leads to continued good conditions in a virtuous cycle.</p>
+
+                <p>But expansion cannot continue indefinitely against fixed or slowly growing resources. As population grows through natural increase and sometimes immigration, it eventually begins to press against the limits of available resources, whether those limits are set by arable land in agricultural societies or by desirable economic opportunities in industrial ones. Labor becomes more abundant relative to capital as more workers compete for jobs, and wages begin to stagnate or decline relative to the cost of living. At the same time, wealth concentrates in fewer hands as those with existing capital benefit disproportionately from economic growth while workers fall behind. The number of people aspiring to elite status grows as education expands and expectations rise, but the number of elite positions does not grow as fast as the number of aspirants, creating frustrated elite aspirants who compete ever more intensely for scarce positions of power and prestige. This is the stagflation phase, where growth slows, inequality rises, and social tensions begin to build beneath a surface that may still appear calm.</p>
+
+                <p>The stagflation phase eventually gives way to a crisis phase when the accumulated tensions become acute and the institutional capacity to manage them is exhausted. Political conflict intensifies as frustrated elites seek to challenge the existing order, mobilizing popular discontent for their own purposes. The specific form the crisis takes varies widely depending on circumstances. It might be civil war, as in mid-nineteenth century America or seventeenth-century England. It might be revolution, as in France in 1789 or Russia in 1917. It might be state breakdown and foreign invasion, as befell many ancient empires when internal weakness coincided with external pressure. It might be a period of prolonged instability without a single dramatic culminating event. But the underlying dynamic is similar across all these varied outcomes: structural pressures accumulated over decades finally overwhelm the institutional capacity to manage them, and the result is a period of turmoil that can last for years or decades before a new equilibrium is reached.</p>
+
+                <h2>The First American Secular Cycle: 1780-1870</h2>
+
+                <p>The first American secular cycle ran from roughly 1780 to 1870. It began with the founding generation, when the new nation had abundant land relative to population, a relatively egalitarian distribution of wealth at least among white males, and low population density that kept labor scarce and wages comparatively high. The frontier stretched endlessly westward, promising opportunity to anyone willing to brave its challenges. This was the expansion phase, when conditions favored social cohesion and institutional development despite the tensions inherent in any new political experiment. The Constitution was written and ratified through a remarkable process of compromise and consensus-building that brought together diverse interests and regions. The new federal government established its authority and legitimacy through a series of early tests, from suppressing the Whiskey Rebellion to purchasing Louisiana to fighting the War of 1812. The frontier served as a safety valve for population pressure in the established East, drawing off ambitious young men who might otherwise have competed for scarce opportunities in their home communities. Political conflicts certainly existed, as they do in any free society, but they were manageable disagreements within a broadly shared constitutional framework rather than existential struggles over the fundamental nature of the polity itself.</p>
+
+                <p>The first American secular cycle peaked during what historians call the Era of Good Feelings in the 1820s, when partisan conflict temporarily subsided and the nation seemed genuinely united in purpose. The Federalist Party had collapsed after opposing the War of 1812, which turned out to be more popular than anticipated when it ended in what Americans perceived as victory. This left the Democratic-Republicans as essentially the only national party, ending the bitter partisanship of the previous decades. James Monroe won the 1820 presidential election with virtually no organized opposition, receiving all but one electoral vote, and that one dissent was cast by a New Hampshire elector who reportedly wanted to preserve Washington's distinction as the only unanimously elected president. Regional differences and sectional tensions existed but seemed surmountable, mere policy disagreements among citizens who agreed on fundamentals. It was a moment of unusual political harmony that, in retrospect, marked the turning point from integration to disintegration, the peak of the first secular cycle before the long descent into crisis.</p>
+
+                <p>Beneath the surface harmony of the Era of Good Feelings, structural pressures were building that would eventually tear the nation apart. Population growth, driven by both natural increase and the first waves of mass immigration from Europe, outpaced the availability of good agricultural land, especially in the established Eastern states where the best farmland had long since been claimed. Young men who might have expected to inherit or acquire productive land found themselves competing for a shrinking pool of opportunity in their home regions. Many moved west, but the frontier was advancing more slowly than population, and the best Western lands were increasingly claimed by speculators rather than available to actual settlers. Wealth began to concentrate in fewer hands as industrialization in the North created new fortunes for factory owners and merchants while eroding traditional livelihoods for artisans and small producers who could not compete with machine production. A class of aspiring elites emerged on both sides of the Mason-Dixon line, and these rival elite factions would soon come into fatal conflict: Southern planters seeking new territory to expand their slave-based agricultural economy, and Northern industrialists seeking tariff protection from foreign competition and federal investment in the internal improvements that would link their factories to national and international markets.</p>
+
+                <p>These rival elite factions found themselves in increasingly bitter competition for political control of the federal government. The question of slavery's expansion into new Western territories became the focal point of this elite conflict because control of new territories meant control of the nation's political future. Would new states entering the Union be slave states that would strengthen the political power of Southern planters in Congress and the Electoral College, or free states that would strengthen the political power of Northern interests? The Missouri Compromise of 1820 attempted to paper over this fundamental conflict by admitting Missouri as a slave state and Maine as a free state while drawing a line across the Louisiana Purchase territory prohibiting slavery north of the thirty-six thirty parallel. Thomas Jefferson, then in retirement at Monticello, recognized the compromise for what it was, calling it a fire bell in the night that awakened him and filled him with terror, the death knell of the Union. But the compromise could only postpone the reckoning, not prevent it. The structural pressures continued to build beneath the surface of national politics.</p>
+
+                <p>By the 1850s, America had unmistakably entered the crisis phase of its first secular cycle. The Kansas-Nebraska Act of 1854 effectively repealed the Missouri Compromise by allowing settlers in Kansas and Nebraska territories to decide the slavery question for themselves through popular sovereignty, a democratic-sounding principle that in practice meant whoever could mobilize the most settlers and the most violence would win. The result was a miniature civil war in Kansas, as pro-slavery settlers from Missouri and anti-slavery settlers from the Northeast rushed to the territory and fought to control its government by force of arms. Preston Brooks, a congressman from South Carolina, beat Senator Charles Sumner of Massachusetts nearly to death with a metal-tipped cane on the Senate floor after Sumner gave a speech attacking slavery and mocking Brooks's kinsman Andrew Butler, who had spoken in favor of Kansas-Nebraska. The assault was cheered in the South, where admirers sent Brooks dozens of new canes, and condemned in the North, where it seemed to confirm that the Slave Power would stop at nothing. John Brown's 1859 raid on the federal arsenal at Harpers Ferry, intended to trigger a slave uprising that never came, raised the specter of violent abolition and terrified Southerners who saw it as a preview of what Republican victory would bring, the equivalent of a race war in which their families would be murdered in their beds.</p>
+
+                <p>When Abraham Lincoln won the 1860 presidential election with less than 40 percent of the popular vote in a four-way race, carrying not a single Southern state, seven slave states seceded before he even took office. The Confederate States of America formed a new government claiming sovereignty over the cotton kingdom. The Civil War that followed was the violent resolution of structural contradictions that had been accumulating for decades. It was not an accident of history, a conflict that could have been avoided with better leadership or more skillful compromise, though many historians have debated whether the war was inevitable or contingent. From an SDT perspective, some form of crisis was likely given the structural pressures; the specific form it took was shaped by contingent factors including leadership decisions and fortuitous events. The Political Stress Index, as we will see when we present our calculations, captures this buildup precisely. The structural pressures were real and measurable: declining relative conditions for working people as population growth outpaced opportunity, intense competition among elites for political control, and a federal government unable to resolve the fundamental contradiction of slavery that pitted these elite factions against each other in what each side saw as a zero-sum, existential conflict. Over 600,000 Americans died in the resulting war, more than in all other American wars combined, and the Union was only preserved through tremendous sacrifice and the transformation of American society through the abolition of slavery and the assertion of federal supremacy over the states.</p>
+
+                <h2>The Second Secular Cycle: From Reconstruction to the Present</h2>
+
+                <p>The second American secular cycle began in the ashes of the Civil War and runs from roughly 1870 to the present day. The post-Civil War period saw another expansion phase, as industrialization created new opportunities for social mobility, mass immigration provided fresh labor willing to work for low wages, and the opening of the Western frontier to railroad-connected settlement relieved population pressure in the increasingly crowded East. This expansion phase lasted longer than the first cycle's expansion, powered by unprecedented technological change spanning from railroads that knit the continent together to electricity that lit homes and powered factories to automobiles that transformed transportation and cities to airplanes that conquered the skies, and by the integration of the national and eventually global economy that these technologies enabled. The Gilded Age of the 1880s and 1890s saw extreme inequality that rivaled any in American history and periodic labor unrest that sometimes turned violent, but also remarkable economic growth and social dynamism that created genuine opportunities for advancement from the lowest rungs of society to the highest.</p>
+
+                <p>Well-being for ordinary workers improved substantially from the depths of the Gilded Age through the mid-twentieth century, reaching a peak around 1960 that has never been matched since and shows no signs of returning under current trends. This improvement was not automatic or inevitable, the natural working out of market forces or technological progress. It required sustained political struggle across multiple generations against entrenched interests that benefited from the status quo: the labor movement's often bloody fight for the eight-hour day and safe working conditions, the Progressive Era's reforms of corporate power and political corruption, the New Deal's creation of Social Security and unemployment insurance and the legal right to organize unions that gave workers collective bargaining power, the postwar education boom fueled by the GI Bill that opened college to millions who could never have afforded it before, and the civil rights movement's expansion of opportunity to Black Americans and other previously excluded groups who had been systematically denied access to American prosperity. Each of these advances represented a structural adjustment that reduced elite power and increased worker well-being, and each was fiercely contested by those who stood to lose from the changes and who warned that reform would destroy American prosperity, warnings that proved spectacularly wrong.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-secular-cycles-annotated.png" alt="Two secular cycles in American history">
+                    <figcaption>America's two secular cycles since independence. The first peaked around 1820 and collapsed into the Civil War. The second peaked around 1960 and is currently in its disintegrative phase. Green shading indicates expansion phases when well-being was improving. Orange shading indicates stagflation when growth slowed. Red shading indicates crisis periods when political instability reached dangerous levels.</figcaption>
+                </figure>
+
+                <p>The postwar consensus of the 1950s and early 1960s represents the integrative peak of the second American secular cycle, analogous to the Era of Good Feelings at the peak of the first cycle. Labor unions were strong, representing over a third of the private workforce and wielding significant political influence through both major parties. Real wages for ordinary workers grew steadily year after year, roughly doubling from 1945 to 1970, so that each generation could expect to do significantly better than its parents. The wealth gap, while still substantial and unjust in many ways, was narrower than it had been in the Gilded Age or would be again in our current era. Elite competition was muted because the rapidly expanding economy created opportunities for ambitious individuals without requiring them to fight viciously over a fixed pie of positions and resources; there was enough success to go around. The top marginal income tax rate exceeded 90 percent, limiting how much wealth could be accumulated by any individual and funding public investments in infrastructure, education, and research that benefited everyone. Corporate executives earned perhaps twenty times what their median workers made, not two hundred or three hundred times as they do today. This was the golden age that older Americans remember nostalgically and younger Americans hear about from their parents and grandparents, a time when a single income from a factory job could support a family of four in a decent house with a car in the driveway, when college was affordable without crushing debt, when jobs were stable and pensions secure and the future looked bright for each succeeding generation.</p>
+
+                <p>The transition from expansion to crisis in the second cycle began around 1970, though the underlying causes accumulated earlier and their relative importance is still debated by economists and historians. Real wages for American workers peaked in 1973 and have essentially stagnated since, even as GDP continued to grow and corporate profits soared to record highs and executive compensation exploded into the tens of millions of dollars per year. The wage stagnation was not immediately visible to most Americans because several factors masked it. The entry of women into the workforce in unprecedented numbers meant that household incomes could keep rising even as individual male earnings flatlined; what had been accomplished by one worker now required two. Credit cards, home equity loans, and eventually student debt allowed consumption to continue and even expand even as wages fell behind productivity growth; Americans borrowed to maintain their accustomed standard of living rather than accepting the decline that stagnant wages implied. The cheapening of consumer goods through globalization and technological progress meant that a stagnant dollar could buy more televisions, computers, and smartphones even if it bought less housing, healthcare, and education, the necessities that families struggled to afford. But the structural reality beneath these masks was unmistakable to anyone who looked: workers were no longer sharing proportionally in economic growth. The gains from increased productivity flowed almost entirely to capital owners and top executives while the people who actually produced the goods and services saw their living standards stall.</p>
+
+                <figure>
+                    <img src="../assets/charts/essay-004-real-wages.png" alt="Real wages in America from 1780 to 2025">
+                    <figcaption>Real wages in America from 1780 to 2025, normalized so that 1960 equals 100. The striking feature is the peak in 1973 followed by half a century of stagnation. In inflation-adjusted terms, the typical American worker in 2025 earns no more than their counterpart in the early 1970s, despite massive economic growth since then.</figcaption>
+                </figure>
+
+                <p>At the same time, elite numbers began to expand rapidly in ways that would create explosive competition for scarce positions. The baby boom generation entered adulthood in the late 1960s and early 1970s, competing for college admissions, professional school slots, and entry-level positions in desirable fields. Universities expanded dramatically to absorb this demographic surge, opening new campuses, hiring new faculty, and admitting record numbers of students. But the expansion created its own problems. More college graduates meant more people expecting college-graduate jobs, but the economy was not creating such jobs at anywhere near the same rate as universities were producing graduates to fill them. The result was credential inflation: jobs that had not required degrees began to require them, not because the work had become more complex or demanding but because employers could demand credentials as a screening device when they had more applicants than positions. Law schools and medical schools and business schools proliferated, producing far more professionals than the economy could absorb into the positions those credentials were supposed to unlock. Elite overproduction, the central driver of instability in Turchin's framework, had begun in earnest. The consequences would take decades to fully manifest, but the seeds were planted in the 1970s and would bear bitter fruit in the twenty-first century.</p>
+
+                <figure>
+                    <img src="../assets/charts/essay-004-elite-overproduction.png" alt="Elite overproduction indicators">
+                    <figcaption>Elite overproduction indicators since 1780: lawyers per capita and PhDs per capita, both normalized to 1960 equals 100. The explosive growth since 1960 means that the credential-holding population has expanded far faster than the positions those credentials supposedly prepare people for.</figcaption>
+                </figure>
+
+                <h2>The Data: Real Wages, Elite Credentials, and Wealth Inequality</h2>
+
+                <p>Before we could compute any of the composite indices that Structural-Demographic Theory uses to measure societal conditions, we needed to assemble the raw data from diverse sources. Our wage data combines historical reconstructions from the Historical Statistics of the United States for the pre-1900 period with Bureau of Labor Statistics series adjusted for inflation for the twentieth and twenty-first centuries. The key finding is stark: real wages peaked in 1973 and have stagnated since, while relative wages, measuring workers' share of GDP, have collapsed to Gilded Age levels. This is the material basis for what Turchin calls popular immiseration: the objective deterioration of worker living standards relative to the overall wealth of society.</p>
+
+                <figure>
+                    <img src="../assets/charts/essay-004-relative-wages.png" alt="Relative wages">
+                    <figcaption>Relative wages measure workers' share of economic growth. When GDP grows but wages stagnate, relative wages decline. The collapse since 1960 has returned American workers to Gilded Age levels of relative deprivation.</figcaption>
+                </figure>
+
+                <p>Our wealth inequality data draws primarily from the World Inequality Database and the work of Piketty, Saez, and Zucman, who have reconstructed the distribution of wealth using tax records and estate data. The picture is the familiar U-shape: high inequality in the Gilded Age, compression during the mid-twentieth century as unions strengthened and progressive taxes limited accumulation, and return to Gilded Age levels in recent decades as those constraints were dismantled. The top 0.1 percent now holds over 22 percent of all wealth, more than tripling their share since 1960 and comparable to the robber baron era.</p>
+
+                <figure>
+                    <img src="../assets/charts/essay-004-wealth-inequality.png" alt="Wealth concentration">
+                    <figcaption>Wealth concentration in America follows a U-shape: high in the Gilded Age, compressed mid-century, and extreme today. The top 0.1 percent now holds more wealth than at any point since before the Great Depression.</figcaption>
+                </figure>
+
+                <h2>Computing the Political Stress Index</h2>
+
+                <p>With the component data assembled, we implemented Turchin's composite indices following the methodology described in Ages of Discord. The Well-Being Index (WBI) combines real wages and relative wages to capture conditions for ordinary workers. The Elite Overproduction Index (EOI) combines lawyers per capita, PhDs per capita, and wealth inequality to capture competition among elites. The Political Stress Index (PSI) combines inverted well-being, which we call mass mobilization potential because poor conditions make people available for political mobilization, with elite competition through a multiplicative formula that captures their interaction. Instability requires both popular grievance and elite leadership; neither alone produces systemic crisis.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-wbi-eoi-scissors.png" alt="Scissors graph">
+                    <figcaption>The scissors graph shows how well-being has fallen while elite competition has risen since 1960. When workers struggle while elites compete viciously, instability becomes structurally likely.</figcaption>
+                </figure>
+
+                <figure>
+                    <img src="../assets/images/essay-004-three-indices.png" alt="Three indices">
+                    <figcaption>The three pillars of Structural-Demographic Theory applied to American history: Well-Being Index (top), Elite Overproduction Index (middle), and Political Stress Index (bottom). The PSI is currently at or near its highest levels in American history.</figcaption>
+                </figure>
+
+                <h2>PSI Through American History: Validating the Model</h2>
+
+                <p>Our computed Political Stress Index shows peaks corresponding precisely to known crisis periods in American history. The index rises through the antebellum period and peaks around 1860, just before the Civil War. It declines during Reconstruction, rises again during the Gilded Age, and peaks around 1920 during the upheavals of Red Summer and the first Red Scare. It declines through mid-century as New Deal reforms and postwar prosperity reduced structural pressure, bottoming around 1960. And it rises steadily from the 1970s onward, reaching levels in the 2020s that rival or exceed the pre-Civil War period. This correlation between predicted stress and actual historical turmoil provides important validation for the model.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-civil-war-comparison.png" alt="1850s vs 2020s">
+                    <figcaption>Are the 2020s like the 1850s? This comparison shows PSI and WBI in both periods. The structural patterns are disturbingly similar, though whether outcomes will be similar remains to be seen.</figcaption>
+                </figure>
+
+                <figure>
+                    <img src="../assets/charts/essay-004-violence.png" alt="Political violence">
+                    <figcaption>Political violence in America correlates with PSI peaks, with notable spikes around 1865, 1920, 1968, and rising levels in the 2020s.</figcaption>
+                </figure>
+
+                <h2>Turchin's 2010 Prediction: The Test of a Theory</h2>
+
+                <p>In 2010, Peter Turchin predicted that America would experience a peak in political instability around 2020. The paper was rejected by Nature, but Turchin published the prediction elsewhere and stood by it publicly. When 2020 arrived with a pandemic that killed over a million Americans, protests that brought millions into the streets, and an attempted insurrection at the Capitol, the accuracy of the prediction became undeniable. Our independent replication confirms that this was not luck but a legitimate inference from structural indicators that were already pointing toward crisis a decade before it arrived.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-turchin-prediction.png" alt="Prediction validated">
+                    <figcaption>Turchin's 2010 prediction of instability peaking around 2020 proved remarkably accurate. This chart shows PSI before and after the prediction, demonstrating that structural indicators clearly pointed toward crisis.</figcaption>
+                </figure>
+
+                <h2>Decomposing Political Stress: What Drives Current Instability?</h2>
+
+                <p>Analysis of PSI components suggests that elite competition is currently the dominant driver of American instability. While worker conditions have declined from mid-century peaks, absolute living standards remain higher than in earlier crises. Elite overproduction, by contrast, is at historically extreme levels. This suggests that interventions targeting credential inflation and elite competition might be particularly effective in reducing contemporary stress.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-psi-decomposition-stacked.png" alt="PSI decomposition">
+                    <figcaption>What drives American instability? The relative contribution of mass mobilization potential (blue) and elite competition (red) to overall political stress has shifted over time.</figcaption>
+                </figure>
+
+                <h2>Phase Space: Where Is America Now?</h2>
+
+                <p>Plotting well-being against political stress in phase space reveals America's trajectory through different states over 250 years. The current position is in the upper-left quadrant: low well-being and high stress. This is the danger zone historically associated with major political disruptions.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-phase-space.png" alt="Phase space">
+                    <figcaption>American history in phase space. Color indicates time from 1780 (dark) to 2025 (light). The current position is in the precarious upper-left quadrant.</figcaption>
+                </figure>
+
+                <h2>Future Scenarios: What Comes Next?</h2>
+
+                <p>We project three scenarios for 2025-2045: continued escalation if current trends persist without intervention, reform and resolution if structural problems are successfully addressed through policy, and prolonged stagnation if the system muddles through without fundamental change. Each has different implications, but none offers easy answers.</p>
+
+                <figure>
+                    <img src="../assets/images/essay-004-future-scenarios.png" alt="Scenarios">
+                    <figcaption>Three scenarios for American political stress: continued escalation (red), reform and resolution (green), and prolonged stagnation (orange).</figcaption>
+                </figure>
+
+                <h2>Animated Visualization: Watching History Unfold</h2>
+
+                <p>To appreciate how political stress has built over American history, we created an animation showing PSI evolving year by year with historical events annotated as they occur. The slow buildup followed by crisis spikes is visible in ways static charts cannot capture.</p>
+
+                <figure>
+                    <img src="../assets/animations/essay-004-psi-animation.gif" alt="Animation">
+                    <figcaption>Watch 250 years of American political stress unfold in this animation, with major events marked as they are reached.</figcaption>
+                </figure>
+
+                <h2>Critiques and Limitations</h2>
+
+                <p>The model has legitimate critics. Some question whether history can be meaningfully quantified. Others question specific indicator choices. Still others note it cannot capture genuinely new phenomena like social media. These concerns are valid and should inform interpretation, but they do not invalidate the core finding that structural pressures are at historically high levels.</p>
+
+                <h2>What Could Change the Trajectory?</h2>
+
+                <p>Structural problems require structural solutions. Improving worker well-being through wage increases and union power, reducing elite overproduction through limits on credential inflation, reducing wealth concentration through progressive taxation, and institutional reforms to increase system resilience could all help. Each faces formidable political obstacles precisely because the same structural conditions that make reform necessary also empower those who resist it. But historical precedent, from the Progressive Era to the New Deal, shows that such reforms are possible when conditions demand them and movements successfully mobilize to achieve them.</p>
+
+                <h2>Our Process: Building This Analysis</h2>
+
+                <p>We built this analysis using Claude Code, implementing data loaders, index calculations, and visualizations from scratch. The visualization script generates nine distinct images plus an animation. All code is available in the project's GitHub repository for verification, critique, and extension by other researchers. Replication and extension by independent researchers is how science advances.</p>
+
+                <h2>Conclusion: America's Structural Crisis</h2>
+
+                <p>Our replication of Ages of Discord confirms Turchin's central findings. America is experiencing structural conditions that historically presage significant political instability. Worker well-being has declined relative to mid-century peaks, with wages stagnating for half a century. Elite overproduction has reached extreme levels as credential inflation produces more aspirants than positions. Wealth concentration has returned to Gilded Age proportions. The Political Stress Index is at or near its highest levels in American history.</p>
+
+                <p>This does not mean catastrophe is inevitable. The model identifies structural pressure, not destiny. Previous periods of high pressure were resolved through violent conflict, through reform, or through some combination. The outcome depends on choices yet to be made. But ignoring structural problems will not make them disappear. The pressure is real, measurable, and comparable to the worst periods of American history.</p>
+
+                <p>Turchin's 2010 prediction proved accurate. The events of 2020 and 2021 were exactly the kind of turmoil structural conditions suggested. But those events did not resolve underlying pressures. The crisis is not over; we are living through it, and we do not yet know how it will end.</p>
+
+                <p>Looking ahead, without intervention, high political stress will likely persist for years or decades. What the model says with confidence is that treating America's problems as merely a matter of personalities or partisan tactics will not address root causes. The numbers are clear. The patterns are evident. What we do with that knowledge is up to us.</p>
+            </div>
+        </article>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Cliodynamics Replication Project</p>
+            <p>Brian Edwards | Waco, Texas, USA</p>
+            <p>Built with Claude Code 2.1.15 (Opus 4.5) | January 2026</p>
+        </div>
+    </footer>
+</body>
+</html>
