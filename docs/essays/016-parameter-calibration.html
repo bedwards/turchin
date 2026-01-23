@@ -27,9 +27,9 @@
                 <div class="essay-meta">
                     <span>January 22, 2026</span>
                     <span class="separator">|</span>
-                    <span class="word-count">12,100 words</span>
+                    <span class="word-count">12,390 words</span>
                     <span class="separator">|</span>
-                    <span>1 hr 1 min read</span>
+                    <span>1 hr 2 min read</span>
                 </div>
                 <div class="essay-tags">
                     <span class="tag">Calibration</span>
@@ -73,7 +73,7 @@
                 <p>The mathematical structure of calibration can be understood through the lens of optimization. We seek parameter values that minimize some measure of disagreement between model predictions and historical observations. Let theta denote a vector of parameters, and let L(theta) denote the loss function that measures this disagreement. The calibration problem is to find the value of theta that minimizes L. In symbols, we want theta-star equal to the argument of the minimum over all theta of L(theta). This formulation is general enough to encompass many specific approaches, differing in how the loss function is defined and how the minimization is performed.</p>
 
                 <figure>
-                    <img src="../assets/images/loss-landscape.png" alt="A 3D visualization of a loss landscape with peaks and valleys">
+                    <img src="../assets/charts/loss-landscape.png" alt="A 3D visualization of a loss landscape with peaks and valleys">
                     <figcaption>The loss landscape for a two-parameter calibration problem. Each point on the surface represents the loss (disagreement with data) for a particular parameter combination. The challenge is to find the lowest point in this landscape. Simple algorithms can get trapped in local minima, the shallow valleys that dot the landscape. Global optimization methods attempt to escape these traps and find the true global minimum.</figcaption>
                 </figure>
 
@@ -104,7 +104,7 @@
                 <p>Local optimization methods, whether gradient descent or quasi-Newton, share a fundamental limitation: they find the nearest minimum from their starting point. If that starting point is in the basin of attraction of a local minimum, the algorithm will converge there rather than to the global minimum. This limitation motivates global optimization methods that attempt to explore the entire parameter space rather than just the neighborhood of an initial guess.</p>
 
                 <figure>
-                    <img src="../assets/images/optimization-trajectory.png" alt="An optimization trajectory across a loss landscape">
+                    <img src="../assets/charts/optimization-trajectory.png" alt="An optimization trajectory across a loss landscape">
                     <figcaption>The path taken by an optimization algorithm across the loss landscape. Starting from an initial guess (marked with a circle), the algorithm moves through parameter space, guided by the gradient and curvature of the loss function. The trajectory shows how the algorithm explores the landscape, sometimes traversing ridges and valleys before settling into the final minimum (marked with a star). Different algorithms produce different trajectories, and some may find better minima than others.</figcaption>
                 </figure>
 
@@ -133,7 +133,7 @@
                 <p>The temporal structure of historical data requires care in how we evaluate model performance. Time series are not independent observations: consecutive points are correlated because they describe the same evolving system. A model might produce a trajectory that matches the overall trend but is systematically early or late in timing. Standard metrics like MSE do not fully capture such phase errors. More sophisticated approaches compare distributions of outcomes, match specific features like peaks and troughs, or use dynamic time warping to align trajectories before computing errors. For our initial calibration work, we use standard MSE but remain alert to timing discrepancies that it might miss.</p>
 
                 <figure>
-                    <img src="../assets/images/model-vs-observed.png" alt="Model predictions compared to observed historical data">
+                    <img src="../assets/charts/model-vs-observed.png" alt="Model predictions compared to observed historical data">
                     <figcaption>Comparison of calibrated model predictions (solid line) against observed historical data (points with error bars). The model captures the overall dynamics: the rise of population, the delayed increase in elite numbers, the gradual decline in wages, and the eventual spike in political stress. Discrepancies between model and data indicate either measurement error in the observations or limitations in the model's ability to capture all relevant mechanisms.</figcaption>
                 </figure>
 
@@ -150,7 +150,7 @@
                 <p>Markov Chain Monte Carlo (MCMC) methods provide a full Bayesian treatment of parameter uncertainty. Rather than seeking a single best-fit parameter value, MCMC explores the posterior distribution: the probability distribution over parameters given the observed data and any prior information. The posterior combines information from the data (through the likelihood) and prior beliefs about plausible parameter values. MCMC generates samples from this distribution through a random walk that preferentially visits high-probability regions. The resulting samples characterize the full uncertainty, including correlations and non-Gaussian features that simpler methods might miss. However, MCMC is computationally expensive (requiring many more model evaluations than optimization) and requires careful tuning to ensure reliable convergence. We have not yet implemented MCMC in our calibration framework but consider it a direction for future development.</p>
 
                 <figure>
-                    <img src="../assets/images/confidence-intervals.png" alt="Parameter estimates with confidence intervals">
+                    <img src="../assets/charts/confidence-intervals.png" alt="Parameter estimates with confidence intervals">
                     <figcaption>Calibrated parameter values with 95% confidence intervals from bootstrap resampling. The horizontal bars show the range of values consistent with the data. Wide intervals indicate parameters that are poorly constrained: the data does not distinguish between different values within the range. Narrow intervals indicate well-determined parameters. Note that some parameters are precisely determined while others span much of their prior range, indicating limited information content in the data for those parameters.</figcaption>
                 </figure>
 
@@ -208,7 +208,7 @@
                 <p>Diagnosing calibration failures requires detective work. When the optimizer returns implausible parameter values or fails to find a good fit, several causes might be responsible. The parameter bounds might be too restrictive, preventing the optimizer from exploring regions where the true minimum lies. The optimizer might be trapped in a local minimum, requiring more aggressive global search or different random initialization. The model structure might be inappropriate for the data, making no parameter values produce a good fit. The data might contain errors or outliers that distort the loss surface. Or the parameters might be non-identifiable, with the optimizer wandering among equally-good solutions. Distinguishing among these possibilities requires examining multiple diagnostic indicators: the loss value achieved, the convergence behavior, the sensitivity to initial conditions, the profile likelihood, and the residual patterns. Often, the diagnosis suggests changes to the calibration setup that resolve the problem.</p>
 
                 <figure>
-                    <img src="../assets/images/residual-analysis.png" alt="Residual analysis showing model errors over time">
+                    <img src="../assets/charts/residual-analysis.png" alt="Residual analysis showing model errors over time">
                     <figcaption>Residual analysis for a calibrated model. The residuals (observed minus predicted values) should appear random if the model captures the systematic dynamics. The left panel shows residuals over time: the absence of clear trends suggests the model does not systematically miss early or late periods. The right panel shows the distribution of residuals: the approximate normality supports the Gaussian noise assumption. Systematic patterns in residuals would indicate model misspecification or unmodeled dynamics.</figcaption>
                 </figure>
 
@@ -263,7 +263,7 @@
                 <p>Collaboration between historians and modelers is essential for successful calibration in cliodynamics. Historians bring knowledge of the evidence, awareness of its limitations, and judgment about what patterns are genuinely surprising versus expected given the context. Modelers bring mathematical formalism, computational methods, and experience with the kinds of things that can go wrong in parameter estimation. Neither expertise alone is sufficient. A modeler working without historical input may calibrate to data that historians know is unreliable, or may interpret results without appreciating the historiographical context. A historian working without modeling expertise may not understand the assumptions embedded in the calibration procedure or the meaning of the uncertainty estimates. Our project benefits from this collaboration, though the challenges of interdisciplinary communication should not be underestimated.</p>
 
                 <figure>
-                    <img src="../assets/images/parameter-convergence.png" alt="Parameter values converging over optimization iterations">
+                    <img src="../assets/charts/parameter-convergence.png" alt="Parameter values converging over optimization iterations">
                     <figcaption>The convergence of parameter estimates during differential evolution optimization. Each line shows how a parameter value changes across generations as the algorithm explores the parameter space and the population converges toward the optimum. Early generations show wide variation as different population members explore different regions. Later generations show convergence as the population concentrates around the best-found solution. Monitoring convergence helps diagnose optimization problems: failure to converge may indicate multimodality or inappropriate algorithm settings.</figcaption>
                 </figure>
 
