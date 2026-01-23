@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliodynamics Explorer - Interactive SDT Simulation</title>
+    
+    <!-- Lexend Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Plotly.js for visualizations -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Pyodide for Python in browser -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    
+    <style>
+        :root {
+            /* Light mode */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --bg-card: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-muted: #6c757d;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #dbeafe;
+            --border-color: #dee2e6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0d1117;
+                --bg-secondary: #161b22;
+                --bg-tertiary: #21262d;
+                --bg-card: #161b22;
+                --text-primary: #e6edf3;
+                --text-secondary: #b1bac4;
+                --text-muted: #8b949e;
+                --accent-color: #58a6ff;
+                --accent-hover: #79b8ff;
+                --accent-light: #1f3a5f;
+                --border-color: #30363d;
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+                --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo:hover {
+            color: var(--accent-color);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .header-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Main layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            min-height: calc(100vh - 70px);
+        }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 70px);
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar {
+                max-height: none;
+            }
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Preset buttons */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .preset-btn {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent-color);
+            background: var(--accent-light);
+        }
+
+        .preset-btn.active {
+            border-color: var(--accent-color);
+            background: var(--accent-light);
+        }
+
+        .preset-btn .preset-name {
+            display: block;
+            font-weight: 600;
+        }
+
+        .preset-btn .preset-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Parameter sliders */
+        .param-group {
+            margin-bottom: 1rem;
+        }
+
+        .param-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .param-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .param-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .param-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .param-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Initial conditions */
+        .initial-condition {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .initial-condition label {
+            width: 40px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .initial-condition input {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.8rem;
+        }
+
+        .initial-condition input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        /* Simulation controls */
+        .control-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .control-row label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+        }
+
+        .control-row input {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.8rem;
+        }
+
+        .run-btn {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .run-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .run-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .run-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Status indicator */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.loading {
+            background: var(--warning-color);
+            animation: pulse 1s infinite;
+        }
+
+        .status-dot.ready {
+            background: var(--success-color);
+        }
+
+        .status-dot.error {
+            background: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main content area */
+        .main-content {
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            overflow-y: auto;
+        }
+
+        /* Charts grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1400px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 350px;
+        }
+
+        .chart-container.tall {
+            height: 450px;
+        }
+
+        /* 3D chart needs more height */
+        .chart-container.chart-3d {
+            height: 500px;
+        }
+
+        /* Info cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1000px) {
+            .info-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .info-card-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .info-card-value.highlight {
+            color: var(--accent-color);
+        }
+
+        .info-card-delta {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .info-card-delta.positive {
+            color: var(--success-color);
+        }
+
+        .info-card-delta.negative {
+            color: var(--danger-color);
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--bg-tertiary);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 1rem;
+            font-size: 1.125rem;
+        }
+
+        .loading-progress {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Tooltip styling for Plotly */
+        .js-plotly-plot .plotly .modebar {
+            background: var(--bg-secondary) !important;
+        }
+
+        /* Collapsible sections */
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 0.5rem 0;
+        }
+
+        .collapsible-header:hover .section-title {
+            color: var(--accent-color);
+        }
+
+        .collapse-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .collapsible-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+            }
+
+            .sidebar {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+
+            .chart-container.chart-3d {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing Cliodynamics Explorer</div>
+        <div id="loading-progress" class="loading-progress">Loading Pyodide runtime...</div>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="logo">Cliodynamics Explorer</a>
+                <span class="subtitle">Interactive SDT Simulation Sandbox</span>
+            </div>
+            <nav class="header-nav">
+                <a href="../index.html">Essays</a>
+                <a href="../essays/003-mathematics-of-collapse.html">SDT Math</a>
+                <a href="https://github.com/bedwards/turchin">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Sidebar: Controls -->
+        <aside class="sidebar">
+            <!-- Status -->
+            <div id="status-bar" class="status-bar">
+                <div id="status-dot" class="status-dot loading"></div>
+                <span id="status-text">Loading Python runtime...</span>
+            </div>
+
+            <!-- Presets -->
+            <div class="section">
+                <div class="section-title">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    Scenario Presets
+                </div>
+                <div class="preset-grid">
+                    <button class="preset-btn" data-preset="america" onclick="loadPreset('america')">
+                        <span class="preset-name">American Crisis</span>
+                        <span class="preset-desc">U.S. 1780-2030</span>
+                    </button>
+                    <button class="preset-btn" data-preset="rome" onclick="loadPreset('rome')">
+                        <span class="preset-name">Roman Collapse</span>
+                        <span class="preset-desc">200 BCE - 300 CE</span>
+                    </button>
+                    <button class="preset-btn" data-preset="stable" onclick="loadPreset('stable')">
+                        <span class="preset-name">Stable Society</span>
+                        <span class="preset-desc">Integrative phase</span>
+                    </button>
+                    <button class="preset-btn active" data-preset="custom" onclick="loadPreset('custom')">
+                        <span class="preset-name">Custom</span>
+                        <span class="preset-desc">Your parameters</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Model Parameters -->
+            <div class="section">
+                <div class="collapsible-header" onclick="toggleSection('params-content')">
+                    <div class="section-title">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                        </svg>
+                        Model Parameters
+                    </div>
+                    <svg class="collapse-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div id="params-content" class="collapsible-content">
+                    <!-- Population parameters -->
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">r<sub>max</sub> (max growth rate)</span>
+                            <span class="param-value" id="val-r_max">0.020</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-r_max" 
+                               min="0.005" max="0.05" step="0.001" value="0.02"
+                               oninput="updateParam('r_max', this.value)">
+                        <div class="param-hint">Intrinsic population growth rate</div>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">K<sub>0</sub> (carrying capacity)</span>
+                            <span class="param-value" id="val-K_0">1.00</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-K_0" 
+                               min="0.5" max="2.0" step="0.05" value="1.0"
+                               oninput="updateParam('K_0', this.value)">
+                        <div class="param-hint">Maximum sustainable population</div>
+                    </div>
+
+                    <!-- Elite parameters -->
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&alpha; (elite mobility)</span>
+                            <span class="param-value" id="val-alpha">0.0050</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-alpha" 
+                               min="0.001" max="0.02" step="0.0005" value="0.005"
+                               oninput="updateParam('alpha', this.value)">
+                        <div class="param-hint">Rate of upward mobility into elite class</div>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&beta; (wage sensitivity)</span>
+                            <span class="param-value" id="val-beta">1.00</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-beta" 
+                               min="0.5" max="2.0" step="0.1" value="1.0"
+                               oninput="updateParam('beta', this.value)">
+                        <div class="param-hint">How wages affect population growth</div>
+                    </div>
+
+                    <!-- Wage parameters -->
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&gamma; (labor market effect)</span>
+                            <span class="param-value" id="val-gamma">2.00</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-gamma" 
+                               min="0.5" max="4.0" step="0.1" value="2.0"
+                               oninput="updateParam('gamma', this.value)">
+                        <div class="param-hint">Wage elasticity to labor supply</div>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&eta; (elite extraction)</span>
+                            <span class="param-value" id="val-eta">1.00</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-eta" 
+                               min="0.2" max="3.0" step="0.1" value="1.0"
+                               oninput="updateParam('eta', this.value)">
+                        <div class="param-hint">Elite predation on worker wages</div>
+                    </div>
+
+                    <!-- State parameters -->
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&rho; (state revenue)</span>
+                            <span class="param-value" id="val-rho">0.20</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-rho" 
+                               min="0.05" max="0.4" step="0.01" value="0.2"
+                               oninput="updateParam('rho', this.value)">
+                        <div class="param-hint">Tax collection efficiency</div>
+                    </div>
+
+                    <!-- Instability parameters -->
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&lambda; (instability rate)</span>
+                            <span class="param-value" id="val-lambda_psi">0.050</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-lambda_psi" 
+                               min="0.01" max="0.15" step="0.005" value="0.05"
+                               oninput="updateParam('lambda_psi', this.value)">
+                        <div class="param-hint">Political stress accumulation rate</div>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-header">
+                            <span class="param-label">&theta;<sub>e</sub> (elite stress weight)</span>
+                            <span class="param-value" id="val-theta_e">1.00</span>
+                        </div>
+                        <input type="range" class="param-slider" id="param-theta_e" 
+                               min="0.2" max="3.0" step="0.1" value="1.0"
+                               oninput="updateParam('theta_e', this.value)">
+                        <div class="param-hint">Elite overproduction contribution to PSI</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial Conditions -->
+            <div class="section">
+                <div class="collapsible-header" onclick="toggleSection('initial-content')">
+                    <div class="section-title">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Initial Conditions
+                    </div>
+                    <svg class="collapse-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div id="initial-content" class="collapsible-content">
+                    <div class="initial-condition">
+                        <label>N<sub>0</sub></label>
+                        <input type="number" id="init-N" value="0.5" step="0.05" min="0.1" max="1.5"
+                               onchange="updateInitial('N', this.value)">
+                        <span class="param-hint">Population</span>
+                    </div>
+                    <div class="initial-condition">
+                        <label>E<sub>0</sub></label>
+                        <input type="number" id="init-E" value="0.05" step="0.01" min="0.01" max="0.5"
+                               onchange="updateInitial('E', this.value)">
+                        <span class="param-hint">Elites</span>
+                    </div>
+                    <div class="initial-condition">
+                        <label>W<sub>0</sub></label>
+                        <input type="number" id="init-W" value="1.0" step="0.1" min="0.1" max="2.0"
+                               onchange="updateInitial('W', this.value)">
+                        <span class="param-hint">Wages</span>
+                    </div>
+                    <div class="initial-condition">
+                        <label>S<sub>0</sub></label>
+                        <input type="number" id="init-S" value="1.0" step="0.1" min="0.1" max="2.0"
+                               onchange="updateInitial('S', this.value)">
+                        <span class="param-hint">State</span>
+                    </div>
+                    <div class="initial-condition">
+                        <label>&psi;<sub>0</sub></label>
+                        <input type="number" id="init-psi" value="0.1" step="0.05" min="0" max="2.0"
+                               onchange="updateInitial('psi', this.value)">
+                        <span class="param-hint">Instability</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Settings -->
+            <div class="section">
+                <div class="collapsible-header" onclick="toggleSection('sim-content')">
+                    <div class="section-title">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Simulation Settings
+                    </div>
+                    <svg class="collapse-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div id="sim-content" class="collapsible-content">
+                    <div class="control-row">
+                        <label>Duration</label>
+                        <input type="number" id="sim-duration" value="300" min="50" max="2000" step="50">
+                        <span>years</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Time step</label>
+                        <input type="number" id="sim-dt" value="0.5" min="0.1" max="2.0" step="0.1">
+                        <span>years</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Run button -->
+            <button id="run-btn" class="run-btn" onclick="runSimulation()" disabled>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Run Simulation
+            </button>
+        </aside>
+
+        <!-- Main content: Charts -->
+        <main class="main-content">
+            <!-- Summary info cards -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-card-label">Final Population</div>
+                    <div class="info-card-value" id="final-N">--</div>
+                    <div class="info-card-delta" id="delta-N"></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-label">Final Elites</div>
+                    <div class="info-card-value" id="final-E">--</div>
+                    <div class="info-card-delta" id="delta-E"></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-label">Final Wages</div>
+                    <div class="info-card-value" id="final-W">--</div>
+                    <div class="info-card-delta" id="delta-W"></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-label">Final State</div>
+                    <div class="info-card-value" id="final-S">--</div>
+                    <div class="info-card-delta" id="delta-S"></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-label">Peak PSI</div>
+                    <div class="info-card-value highlight" id="final-psi">--</div>
+                    <div class="info-card-delta" id="delta-psi"></div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <!-- Time series: All variables -->
+                <div class="chart-card full-width">
+                    <div class="chart-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                        SDT Variables Over Time
+                    </div>
+                    <div class="chart-subtitle">Population (N), Elites (E), Wages (W), State Health (S), Political Stress Index (psi)</div>
+                    <div class="chart-container tall" id="chart-timeseries"></div>
+                </div>
+
+                <!-- Phase space: N vs W -->
+                <div class="chart-card">
+                    <div class="chart-title">Phase Space: Population vs Wages</div>
+                    <div class="chart-subtitle">Trajectory in (N, W) space shows Malthusian dynamics</div>
+                    <div class="chart-container" id="chart-phase-nw"></div>
+                </div>
+
+                <!-- Phase space: E vs psi -->
+                <div class="chart-card">
+                    <div class="chart-title">Phase Space: Elites vs Instability</div>
+                    <div class="chart-subtitle">Trajectory in (E, psi) space shows elite dynamics</div>
+                    <div class="chart-container" id="chart-phase-epsi"></div>
+                </div>
+
+                <!-- PSI trajectory -->
+                <div class="chart-card">
+                    <div class="chart-title">Political Stress Index</div>
+                    <div class="chart-subtitle">Instability accumulation over time</div>
+                    <div class="chart-container" id="chart-psi"></div>
+                </div>
+
+                <!-- 3D phase space -->
+                <div class="chart-card">
+                    <div class="chart-title">3D Phase Space</div>
+                    <div class="chart-subtitle">System trajectory in (N, W, psi) space</div>
+                    <div class="chart-container chart-3d" id="chart-3d"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>
+            Cliodynamics Explorer | Built with 
+            <a href="https://pyodide.org" target="_blank">Pyodide</a> and 
+            <a href="https://plotly.com/javascript/" target="_blank">Plotly.js</a> |
+            <a href="https://github.com/bedwards/turchin" target="_blank">View Source</a>
+        </p>
+        <p>Based on Peter Turchin's Structural-Demographic Theory | Brian Edwards, 2026</p>
+    </footer>
+
+    <script>
+        // =====================================================
+        // State Management
+        // =====================================================
+        
+        let pyodide = null;
+        let isRunning = false;
+        
+        // Current parameters
+        const params = {
+            r_max: 0.02,
+            K_0: 1.0,
+            beta: 1.0,
+            mu: 0.2,
+            alpha: 0.005,
+            delta_e: 0.02,
+            gamma: 2.0,
+            eta: 1.0,
+            rho: 0.2,
+            sigma: 0.1,
+            epsilon: 0.05,
+            lambda_psi: 0.05,
+            theta_w: 1.0,
+            theta_e: 1.0,
+            theta_s: 1.0,
+            psi_decay: 0.02,
+            W_0: 1.0,
+            E_0: 0.1,
+            S_0: 1.0
+        };
+
+        // Current initial conditions
+        const initial = {
+            N: 0.5,
+            E: 0.05,
+            W: 1.0,
+            S: 1.0,
+            psi: 0.1
+        };
+
+        // Preset configurations
+        const presets = {
+            america: {
+                name: "American Crisis",
+                params: {
+                    r_max: 0.018,
+                    K_0: 1.0,
+                    beta: 1.2,
+                    alpha: 0.008,
+                    gamma: 2.5,
+                    eta: 1.5,
+                    rho: 0.25,
+                    lambda_psi: 0.06,
+                    theta_e: 1.5
+                },
+                initial: {
+                    N: 0.3,
+                    E: 0.02,
+                    W: 1.2,
+                    S: 1.1,
+                    psi: 0.05
+                },
+                duration: 250
+            },
+            rome: {
+                name: "Roman Collapse",
+                params: {
+                    r_max: 0.015,
+                    K_0: 1.0,
+                    beta: 0.8,
+                    alpha: 0.006,
+                    gamma: 1.8,
+                    eta: 1.8,
+                    rho: 0.15,
+                    lambda_psi: 0.07,
+                    theta_e: 2.0
+                },
+                initial: {
+                    N: 0.6,
+                    E: 0.08,
+                    W: 0.9,
+                    S: 0.8,
+                    psi: 0.2
+                },
+                duration: 500
+            },
+            stable: {
+                name: "Stable Society",
+                params: {
+                    r_max: 0.012,
+                    K_0: 1.0,
+                    beta: 1.0,
+                    alpha: 0.003,
+                    gamma: 2.0,
+                    eta: 0.5,
+                    rho: 0.3,
+                    lambda_psi: 0.03,
+                    theta_e: 0.5
+                },
+                initial: {
+                    N: 0.5,
+                    E: 0.05,
+                    W: 1.0,
+                    S: 1.2,
+                    psi: 0.05
+                },
+                duration: 300
+            },
+            custom: {
+                name: "Custom",
+                params: { ...params },
+                initial: { ...initial },
+                duration: 300
+            }
+        };
+
+        let currentPreset = 'custom';
+
+        // =====================================================
+        // Pyodide Initialization
+        // =====================================================
+        
+        async function initPyodide() {
+            updateLoadingProgress("Loading Pyodide runtime...");
+            
+            try {
+                pyodide = await loadPyodide();
+                updateLoadingProgress("Installing NumPy and SciPy...");
+                
+                await pyodide.loadPackage(['numpy', 'scipy']);
+                updateLoadingProgress("Setting up SDT model...");
+                
+                // Define the SDT model in Python
+                await pyodide.runPythonAsync(`
+import numpy as np
+from scipy.integrate import solve_ivp
+
+class SDTModel:
+    """Structural-Demographic Theory model for browser simulation."""
+    
+    def __init__(self, params):
+        self.params = params
+    
+    def system(self, t, y):
+        """Compute derivatives for all state variables."""
+        N, E, W, S, psi = y
+        p = self.params
+        
+        # Ensure non-negative values
+        N = max(N, 1e-10)
+        E = max(E, 1e-10)
+        W = max(W, 1e-10)
+        S = max(S, 1e-10)
+        psi = max(psi, 0.0)
+        
+        # Population dynamics
+        r_effective = p['r_max'] * (W / p['W_0']) ** p['beta']
+        dN_dt = r_effective * N * (1 - N / p['K_0'])
+        
+        # Elite dynamics
+        wage_ratio = W / p['W_0']
+        surplus_factor = max(0.0, 1.0 - wage_ratio + p['mu'])
+        upward_mobility = p['alpha'] * surplus_factor * N
+        elite_loss = p['delta_e'] * E
+        dE_dt = upward_mobility - elite_loss
+        
+        # Wage dynamics
+        labor_effect = p['gamma'] * (1 - N / p['K_0'])
+        elite_ratio = E / p['E_0']
+        extraction_effect = p['eta'] * (elite_ratio - 1)
+        dW_dt = W * (labor_effect - extraction_effect)
+        
+        # State dynamics
+        output = W * N
+        revenue = p['rho'] * output
+        base_expenditure = p['sigma'] * S
+        elite_burden = p['epsilon'] * E
+        dS_dt = revenue - base_expenditure - elite_burden
+        
+        # Instability dynamics
+        wage_stress = p['theta_w'] * max(0.0, p['W_0'] / max(W, 1e-6) - 1)
+        elite_stress = p['theta_e'] * max(0.0, E / p['E_0'] - 1)
+        state_stress = p['theta_s'] * max(0.0, p['S_0'] / max(S, 1e-6) - 1)
+        accumulation = p['lambda_psi'] * (wage_stress + elite_stress + state_stress)
+        decay = p['psi_decay'] * psi
+        dpsi_dt = accumulation - decay
+        
+        return [dN_dt, dE_dt, dW_dt, dS_dt, dpsi_dt]
+    
+    def run(self, initial, t_end, dt=0.5):
+        """Run simulation and return results."""
+        y0 = [initial['N'], initial['E'], initial['W'], initial['S'], initial['psi']]
+        t_eval = np.arange(0, t_end + dt, dt)
+        
+        solution = solve_ivp(
+            self.system,
+            (0, t_end),
+            y0,
+            method='RK45',
+            t_eval=t_eval,
+            rtol=1e-6,
+            atol=1e-9
+        )
+        
+        return {
+            't': solution.t.tolist(),
+            'N': solution.y[0].tolist(),
+            'E': solution.y[1].tolist(),
+            'W': solution.y[2].tolist(),
+            'S': solution.y[3].tolist(),
+            'psi': solution.y[4].tolist()
+        }
+
+def run_simulation(params_json, initial_json, t_end, dt):
+    """Entry point for JavaScript to call."""
+    import json
+    params = json.loads(params_json)
+    initial = json.loads(initial_json)
+    
+    model = SDTModel(params)
+    results = model.run(initial, t_end, dt)
+    
+    return json.dumps(results)
+                `);
+                
+                updateLoadingProgress("Ready!");
+                setStatus('ready', 'Python runtime ready');
+                document.getElementById('run-btn').disabled = false;
+                
+                // Hide loading overlay
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                }, 500);
+                
+                // Run initial simulation
+                runSimulation();
+                
+            } catch (error) {
+                console.error("Failed to initialize Pyodide:", error);
+                setStatus('error', 'Failed to load Python runtime');
+                updateLoadingProgress("Error: " + error.message);
+            }
+        }
+
+        function updateLoadingProgress(message) {
+            document.getElementById('loading-progress').textContent = message;
+        }
+
+        function setStatus(state, message) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            
+            dot.className = 'status-dot ' + state;
+            text.textContent = message;
+        }
+
+        // =====================================================
+        // Parameter Updates
+        // =====================================================
+        
+        function updateParam(name, value) {
+            const numValue = parseFloat(value);
+            params[name] = numValue;
+            
+            // Update display
+            const valEl = document.getElementById('val-' + name);
+            if (valEl) {
+                valEl.textContent = numValue.toFixed(name === 'alpha' || name === 'lambda_psi' ? 4 : 2);
+            }
+            
+            // Mark as custom preset
+            setPresetActive('custom');
+            currentPreset = 'custom';
+        }
+
+        function updateInitial(name, value) {
+            initial[name] = parseFloat(value);
+            setPresetActive('custom');
+            currentPreset = 'custom';
+        }
+
+        function setPresetActive(presetName) {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.preset === presetName);
+            });
+        }
+
+        function loadPreset(presetName) {
+            const preset = presets[presetName];
+            if (!preset) return;
+            
+            currentPreset = presetName;
+            setPresetActive(presetName);
+            
+            // Update parameters
+            Object.entries(preset.params).forEach(([key, value]) => {
+                params[key] = value;
+                
+                // Update slider
+                const slider = document.getElementById('param-' + key);
+                if (slider) {
+                    slider.value = value;
+                }
+                
+                // Update display
+                const valEl = document.getElementById('val-' + key);
+                if (valEl) {
+                    valEl.textContent = value.toFixed(key === 'alpha' || key === 'lambda_psi' ? 4 : 2);
+                }
+            });
+            
+            // Update initial conditions
+            Object.entries(preset.initial).forEach(([key, value]) => {
+                initial[key] = value;
+                const input = document.getElementById('init-' + key);
+                if (input) {
+                    input.value = value;
+                }
+            });
+            
+            // Update duration
+            if (preset.duration) {
+                document.getElementById('sim-duration').value = preset.duration;
+            }
+            
+            // Run simulation
+            if (pyodide) {
+                runSimulation();
+            }
+        }
+
+        // =====================================================
+        // Simulation
+        // =====================================================
+        
+        async function runSimulation() {
+            if (!pyodide || isRunning) return;
+            
+            isRunning = true;
+            const runBtn = document.getElementById('run-btn');
+            runBtn.disabled = true;
+            runBtn.innerHTML = `
+                <svg class="loading-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;animation:spin 1s linear infinite">
+                    <circle cx="12" cy="12" r="10" stroke-width="4" stroke-dasharray="30 70"></circle>
+                </svg>
+                Running...
+            `;
+            setStatus('loading', 'Running simulation...');
+            
+            try {
+                const duration = parseInt(document.getElementById('sim-duration').value);
+                const dt = parseFloat(document.getElementById('sim-dt').value);
+                
+                const paramsJson = JSON.stringify(params);
+                const initialJson = JSON.stringify(initial);
+                
+                const resultJson = await pyodide.runPythonAsync(`
+                    run_simulation('${paramsJson}', '${initialJson}', ${duration}, ${dt})
+                `);
+                
+                const results = JSON.parse(resultJson);
+                
+                // Update charts
+                updateAllCharts(results);
+                updateInfoCards(results);
+                
+                setStatus('ready', 'Simulation complete');
+                
+            } catch (error) {
+                console.error("Simulation error:", error);
+                setStatus('error', 'Simulation failed: ' + error.message);
+            } finally {
+                isRunning = false;
+                runBtn.disabled = false;
+                runBtn.innerHTML = `
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Run Simulation
+                `;
+            }
+        }
+
+        // =====================================================
+        // Chart Updates
+        // =====================================================
+        
+        function getPlotlyTheme() {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            return {
+                paper_bgcolor: isDark ? '#161b22' : '#ffffff',
+                plot_bgcolor: isDark ? '#0d1117' : '#f8f9fa',
+                font: { color: isDark ? '#e6edf3' : '#212529', family: 'Lexend, sans-serif' },
+                gridcolor: isDark ? '#30363d' : '#dee2e6',
+                linecolor: isDark ? '#30363d' : '#dee2e6'
+            };
+        }
+
+        function updateAllCharts(results) {
+            const theme = getPlotlyTheme();
+            
+            updateTimeseriesChart(results, theme);
+            updatePhaseNWChart(results, theme);
+            updatePhaseEPsiChart(results, theme);
+            updatePSIChart(results, theme);
+            update3DChart(results, theme);
+        }
+
+        function updateTimeseriesChart(results, theme) {
+            const traces = [
+                {
+                    x: results.t,
+                    y: results.N,
+                    name: 'Population (N)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#3b82f6', width: 2 }
+                },
+                {
+                    x: results.t,
+                    y: results.E.map(e => e * 10), // Scale for visibility
+                    name: 'Elites (E x10)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#8b5cf6', width: 2 }
+                },
+                {
+                    x: results.t,
+                    y: results.W,
+                    name: 'Wages (W)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#10b981', width: 2 }
+                },
+                {
+                    x: results.t,
+                    y: results.S,
+                    name: 'State Health (S)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#f59e0b', width: 2 }
+                },
+                {
+                    x: results.t,
+                    y: results.psi,
+                    name: 'Political Stress (psi)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#ef4444', width: 3 }
+                }
+            ];
+
+            const layout = {
+                paper_bgcolor: theme.paper_bgcolor,
+                plot_bgcolor: theme.plot_bgcolor,
+                font: theme.font,
+                margin: { t: 20, r: 20, b: 50, l: 60 },
+                xaxis: {
+                    title: 'Time (years)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor,
+                    zeroline: false
+                },
+                yaxis: {
+                    title: 'Value',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor,
+                    zeroline: false
+                },
+                legend: {
+                    orientation: 'h',
+                    y: -0.15,
+                    x: 0.5,
+                    xanchor: 'center'
+                },
+                hovermode: 'x unified'
+            };
+
+            Plotly.newPlot('chart-timeseries', traces, layout, { responsive: true });
+        }
+
+        function updatePhaseNWChart(results, theme) {
+            // Color by time
+            const colors = results.t.map((t, i) => i / results.t.length);
+            
+            const trace = {
+                x: results.N,
+                y: results.W,
+                mode: 'lines+markers',
+                type: 'scatter',
+                marker: {
+                    size: 4,
+                    color: colors,
+                    colorscale: 'Viridis',
+                    showscale: true,
+                    colorbar: {
+                        title: 'Time',
+                        thickness: 15,
+                        len: 0.8
+                    }
+                },
+                line: {
+                    color: '#3b82f6',
+                    width: 1.5
+                },
+                hovertemplate: 'N: %{x:.3f}<br>W: %{y:.3f}<extra></extra>'
+            };
+
+            // Add start and end markers
+            const startMarker = {
+                x: [results.N[0]],
+                y: [results.W[0]],
+                mode: 'markers',
+                type: 'scatter',
+                marker: { size: 12, color: '#10b981', symbol: 'circle' },
+                name: 'Start',
+                showlegend: true
+            };
+
+            const endMarker = {
+                x: [results.N[results.N.length - 1]],
+                y: [results.W[results.W.length - 1]],
+                mode: 'markers',
+                type: 'scatter',
+                marker: { size: 12, color: '#ef4444', symbol: 'square' },
+                name: 'End',
+                showlegend: true
+            };
+
+            const layout = {
+                paper_bgcolor: theme.paper_bgcolor,
+                plot_bgcolor: theme.plot_bgcolor,
+                font: theme.font,
+                margin: { t: 20, r: 80, b: 50, l: 60 },
+                xaxis: {
+                    title: 'Population (N)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor
+                },
+                yaxis: {
+                    title: 'Wages (W)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor
+                },
+                legend: {
+                    orientation: 'h',
+                    y: -0.2,
+                    x: 0.5,
+                    xanchor: 'center'
+                }
+            };
+
+            Plotly.newPlot('chart-phase-nw', [trace, startMarker, endMarker], layout, { responsive: true });
+        }
+
+        function updatePhaseEPsiChart(results, theme) {
+            const colors = results.t.map((t, i) => i / results.t.length);
+            
+            const trace = {
+                x: results.E,
+                y: results.psi,
+                mode: 'lines+markers',
+                type: 'scatter',
+                marker: {
+                    size: 4,
+                    color: colors,
+                    colorscale: 'Plasma',
+                    showscale: true,
+                    colorbar: {
+                        title: 'Time',
+                        thickness: 15,
+                        len: 0.8
+                    }
+                },
+                line: {
+                    color: '#8b5cf6',
+                    width: 1.5
+                },
+                hovertemplate: 'E: %{x:.4f}<br>psi: %{y:.3f}<extra></extra>'
+            };
+
+            const startMarker = {
+                x: [results.E[0]],
+                y: [results.psi[0]],
+                mode: 'markers',
+                type: 'scatter',
+                marker: { size: 12, color: '#10b981', symbol: 'circle' },
+                name: 'Start',
+                showlegend: true
+            };
+
+            const endMarker = {
+                x: [results.E[results.E.length - 1]],
+                y: [results.psi[results.psi.length - 1]],
+                mode: 'markers',
+                type: 'scatter',
+                marker: { size: 12, color: '#ef4444', symbol: 'square' },
+                name: 'End',
+                showlegend: true
+            };
+
+            const layout = {
+                paper_bgcolor: theme.paper_bgcolor,
+                plot_bgcolor: theme.plot_bgcolor,
+                font: theme.font,
+                margin: { t: 20, r: 80, b: 50, l: 60 },
+                xaxis: {
+                    title: 'Elites (E)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor
+                },
+                yaxis: {
+                    title: 'Political Stress (psi)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor
+                },
+                legend: {
+                    orientation: 'h',
+                    y: -0.2,
+                    x: 0.5,
+                    xanchor: 'center'
+                }
+            };
+
+            Plotly.newPlot('chart-phase-epsi', [trace, startMarker, endMarker], layout, { responsive: true });
+        }
+
+        function updatePSIChart(results, theme) {
+            // Find peak PSI
+            const maxPsi = Math.max(...results.psi);
+            const maxPsiIdx = results.psi.indexOf(maxPsi);
+            const peakTime = results.t[maxPsiIdx];
+
+            const trace = {
+                x: results.t,
+                y: results.psi,
+                type: 'scatter',
+                mode: 'lines',
+                fill: 'tozeroy',
+                fillcolor: 'rgba(239, 68, 68, 0.2)',
+                line: { color: '#ef4444', width: 3 },
+                hovertemplate: 'Year: %{x}<br>PSI: %{y:.3f}<extra></extra>'
+            };
+
+            // Peak marker
+            const peakMarker = {
+                x: [peakTime],
+                y: [maxPsi],
+                mode: 'markers+text',
+                type: 'scatter',
+                marker: { size: 12, color: '#ef4444', symbol: 'star' },
+                text: [`Peak: ${maxPsi.toFixed(2)}`],
+                textposition: 'top center',
+                textfont: { color: '#ef4444', size: 12 },
+                showlegend: false
+            };
+
+            // Danger threshold line
+            const dangerLine = {
+                x: [results.t[0], results.t[results.t.length - 1]],
+                y: [1.0, 1.0],
+                mode: 'lines',
+                type: 'scatter',
+                line: { color: '#f59e0b', width: 2, dash: 'dash' },
+                name: 'Instability threshold',
+                showlegend: true
+            };
+
+            const layout = {
+                paper_bgcolor: theme.paper_bgcolor,
+                plot_bgcolor: theme.plot_bgcolor,
+                font: theme.font,
+                margin: { t: 20, r: 20, b: 50, l: 60 },
+                xaxis: {
+                    title: 'Time (years)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor
+                },
+                yaxis: {
+                    title: 'Political Stress Index (psi)',
+                    gridcolor: theme.gridcolor,
+                    linecolor: theme.linecolor,
+                    rangemode: 'tozero'
+                },
+                legend: {
+                    orientation: 'h',
+                    y: -0.2,
+                    x: 0.5,
+                    xanchor: 'center'
+                }
+            };
+
+            Plotly.newPlot('chart-psi', [trace, dangerLine, peakMarker], layout, { responsive: true });
+        }
+
+        function update3DChart(results, theme) {
+            // Subsample for performance
+            const step = Math.max(1, Math.floor(results.t.length / 500));
+            const t = results.t.filter((_, i) => i % step === 0);
+            const N = results.N.filter((_, i) => i % step === 0);
+            const W = results.W.filter((_, i) => i % step === 0);
+            const psi = results.psi.filter((_, i) => i % step === 0);
+
+            const colors = t.map((_, i) => i / t.length);
+
+            const trace = {
+                x: N,
+                y: W,
+                z: psi,
+                mode: 'lines+markers',
+                type: 'scatter3d',
+                marker: {
+                    size: 3,
+                    color: colors,
+                    colorscale: 'Viridis',
+                    showscale: true,
+                    colorbar: {
+                        title: 'Time',
+                        thickness: 15,
+                        len: 0.8,
+                        x: 1.02
+                    }
+                },
+                line: {
+                    color: colors,
+                    colorscale: 'Viridis',
+                    width: 4
+                },
+                hovertemplate: 'N: %{x:.3f}<br>W: %{y:.3f}<br>psi: %{z:.3f}<extra></extra>'
+            };
+
+            // Start marker
+            const startMarker = {
+                x: [N[0]],
+                y: [W[0]],
+                z: [psi[0]],
+                mode: 'markers',
+                type: 'scatter3d',
+                marker: { size: 8, color: '#10b981', symbol: 'circle' },
+                name: 'Start'
+            };
+
+            // End marker
+            const endMarker = {
+                x: [N[N.length - 1]],
+                y: [W[W.length - 1]],
+                z: [psi[psi.length - 1]],
+                mode: 'markers',
+                type: 'scatter3d',
+                marker: { size: 8, color: '#ef4444', symbol: 'diamond' },
+                name: 'End'
+            };
+
+            const layout = {
+                paper_bgcolor: theme.paper_bgcolor,
+                font: theme.font,
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                scene: {
+                    xaxis: {
+                        title: 'Population (N)',
+                        gridcolor: theme.gridcolor,
+                        backgroundcolor: theme.plot_bgcolor
+                    },
+                    yaxis: {
+                        title: 'Wages (W)',
+                        gridcolor: theme.gridcolor,
+                        backgroundcolor: theme.plot_bgcolor
+                    },
+                    zaxis: {
+                        title: 'Stress (psi)',
+                        gridcolor: theme.gridcolor,
+                        backgroundcolor: theme.plot_bgcolor
+                    },
+                    bgcolor: theme.plot_bgcolor,
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 1.2 }
+                    }
+                },
+                legend: {
+                    x: 0,
+                    y: 1,
+                    bgcolor: 'rgba(0,0,0,0)'
+                }
+            };
+
+            Plotly.newPlot('chart-3d', [trace, startMarker, endMarker], layout, { responsive: true });
+        }
+
+        function updateInfoCards(results) {
+            const n = results.N.length;
+            
+            // Final values
+            const finalN = results.N[n - 1];
+            const finalE = results.E[n - 1];
+            const finalW = results.W[n - 1];
+            const finalS = results.S[n - 1];
+            const maxPsi = Math.max(...results.psi);
+            
+            // Initial values
+            const initN = results.N[0];
+            const initE = results.E[0];
+            const initW = results.W[0];
+            const initS = results.S[0];
+            const initPsi = results.psi[0];
+            
+            // Update displays
+            document.getElementById('final-N').textContent = finalN.toFixed(3);
+            document.getElementById('final-E').textContent = finalE.toFixed(4);
+            document.getElementById('final-W').textContent = finalW.toFixed(3);
+            document.getElementById('final-S').textContent = finalS.toFixed(3);
+            document.getElementById('final-psi').textContent = maxPsi.toFixed(3);
+            
+            // Update deltas
+            updateDelta('delta-N', finalN, initN);
+            updateDelta('delta-E', finalE, initE);
+            updateDelta('delta-W', finalW, initW);
+            updateDelta('delta-S', finalS, initS);
+            updateDelta('delta-psi', maxPsi, initPsi);
+        }
+
+        function updateDelta(elementId, final, initial) {
+            const el = document.getElementById(elementId);
+            const delta = ((final - initial) / initial) * 100;
+            const sign = delta >= 0 ? '+' : '';
+            el.textContent = `${sign}${delta.toFixed(1)}%`;
+            el.className = 'info-card-delta ' + (delta >= 0 ? 'positive' : 'negative');
+        }
+
+        // =====================================================
+        // UI Helpers
+        // =====================================================
+        
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            content.classList.toggle('collapsed');
+        }
+
+        // Handle theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (pyodide) {
+                // Re-render charts with new theme
+                runSimulation();
+            }
+        });
+
+        // =====================================================
+        // Initialize
+        // =====================================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initPyodide();
+        });
+    </script>
+</body>
+</html>
