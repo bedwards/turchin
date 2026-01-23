@@ -472,3 +472,69 @@ footer p {
     box-shadow: none;
   }
 }
+
+/* Interactive Explorer Section */
+.explorer-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.explorer-card {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.explorer-card h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  font-size: 1.5rem;
+}
+
+.explorer-card h3 a {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.explorer-card h3 a:hover {
+  color: var(--accent-color);
+}
+
+.explorer-card p {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+.explorer-card ul {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+  padding-left: var(--spacing-xl);
+}
+
+.explorer-card li {
+  margin-bottom: var(--spacing-sm);
+}
+
+.explorer-note {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.explorer-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-color);
+  color: white !important;
+  border-radius: 8px;
+  text-decoration: none !important;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.explorer-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
