@@ -46,6 +46,8 @@ Usage (API client - requires seshat_api package):
 """
 
 from cliodynamics.data.access import (
+    DATASET_EQUINOX,
+    DATASET_POLARIS,
     VARIABLE_ALIASES,
     VARIABLE_CATEGORIES,
     PolityTimeSeries,
@@ -62,6 +64,7 @@ from cliodynamics.data.api_client import (
     SeshatAPINotInstalledError,
 )
 from cliodynamics.data.download import download_and_extract, get_zenodo_download_url
+from cliodynamics.data.download_polaris import download_polaris
 from cliodynamics.data.parser import (
     DataQuality,
     ParsedValue,
@@ -69,6 +72,8 @@ from cliodynamics.data.parser import (
     SeshatDataset,
     get_variable_summary,
     load_equinox,
+    load_polaris,
+    load_polaris_threads,
     load_seshat_csv,
     load_seshat_excel,
     parse_seshat_dataframe,
@@ -82,6 +87,8 @@ __all__ = [
     "TimeSeriesPoint",
     "VARIABLE_ALIASES",
     "VARIABLE_CATEGORIES",
+    "DATASET_EQUINOX",
+    "DATASET_POLARIS",
     # API client classes
     "SeshatAPIClient",
     "PolityInfo",
@@ -93,6 +100,7 @@ __all__ = [
     # Download functions
     "download_and_extract",
     "get_zenodo_download_url",
+    "download_polaris",
     # Parser classes
     "DataQuality",
     "ParsedValue",
@@ -101,6 +109,8 @@ __all__ = [
     # Parser functions
     "get_variable_summary",
     "load_equinox",
+    "load_polaris",
+    "load_polaris_threads",
     "load_seshat_csv",
     "load_seshat_excel",
     "parse_seshat_dataframe",

@@ -471,6 +471,137 @@ def load_equinox(data_dir: Path | str | None = None) -> SeshatDataset:
     return parse_seshat_dataframe(df)
 
 
+def load_polaris(data_dir: Path | str | None = None) -> SeshatDataset:
+    """
+    Load the Seshat Polaris-2025 dataset.
+
+    The Polaris-2025 dataset is the latest release from the Seshat Global
+    History Databank, built from the live Seshat API. It provides updated
+    and expanded coverage compared to Equinox-2020.
+
+    Key Differences from Equinox-2020:
+        - More recent data from the live Seshat API
+        - Includes polity_threads.csv for temporal continuity
+        - Column naming uses lowercase (polity vs Polity)
+        - Expanded variable coverage
+
+    Args:
+        data_dir: Directory containing the downloaded data.
+                  Defaults to ./data/polaris2025/
+
+    Returns:
+        SeshatDataset with all polities and variables
+
+    Raises:
+        FileNotFoundError: If dataset is not downloaded
+
+    Example:
+        >>> from cliodynamics.data.parser import load_polaris
+        >>> dataset = load_polaris()
+        >>> print(f"Loaded {len(dataset.polities)} polities")
+    """
+    if data_dir is None:
+        # Look in default location relative to project root
+        module_path = Path(__file__).resolve()
+        src_path = module_path.parent.parent.parent
+        project_root = src_path.parent
+        data_dir = project_root / "data" / "polaris2025"
+    else:
+        data_dir = Path(data_dir)
+
+    if not data_dir.exists():
+        raise FileNotFoundError(
+            f"Polaris data directory not found: {data_dir}. "
+            "Run 'python -m cliodynamics.data.download_polaris' first."
+        )
+
+    # Look for Polaris Excel file first
+    excel_file = data_dir / "Polaris2025.xlsx"
+    if excel_file.exists():
+        df = load_seshat_excel(excel_file)
+    else:
+        # Look for any Excel or CSV files
+        excel_files = list(data_dir.glob("*.xlsx"))
+        csv_files = list(data_dir.glob("*.csv"))
+
+        if excel_files:
+            filepath = excel_files[0]
+            df = load_seshat_excel(filepath)
+        elif csv_files:
+            # Filter out polity_threads.csv which has different schema
+            main_csv = [f for f in csv_files if "threads" not in f.name.lower()]
+            if main_csv:
+                filepath = main_csv[0]
+                df = load_seshat_csv(filepath)
+            elif csv_files:
+                filepath = csv_files[0]
+                df = load_seshat_csv(filepath)
+            else:
+                raise FileNotFoundError(
+                    f"No Excel or CSV files found in {data_dir}. "
+                    "Run 'python -m cliodynamics.data.download_polaris' first."
+                )
+        else:
+            raise FileNotFoundError(
+                f"No Excel or CSV files found in {data_dir}. "
+                "Run 'python -m cliodynamics.data.download_polaris' first."
+            )
+
+    # Parse with Polaris-specific column mappings
+    # Polaris may use lowercase column names
+    dataset = parse_seshat_dataframe(df)
+
+    # Update metadata to reflect Polaris source
+    dataset.metadata.update(
+        {
+            "source": "Seshat Polaris-2025",
+            "repository": "https://github.com/Seshat-Global-History-Databank/build_polaris_dataset",
+        }
+    )
+
+    return dataset
+
+
+def load_polaris_threads(data_dir: Path | str | None = None) -> pd.DataFrame:
+    """
+    Load the polity_threads.csv file from Polaris-2025.
+
+    The polity threads file contains information about temporal continuity
+    between polities, useful for tracking political succession.
+
+    Args:
+        data_dir: Directory containing the downloaded data.
+                  Defaults to ./data/polaris2025/
+
+    Returns:
+        DataFrame with polity thread information
+
+    Raises:
+        FileNotFoundError: If file is not found
+
+    Example:
+        >>> from cliodynamics.data.parser import load_polaris_threads
+        >>> threads = load_polaris_threads()
+        >>> print(threads.columns.tolist())
+    """
+    if data_dir is None:
+        module_path = Path(__file__).resolve()
+        src_path = module_path.parent.parent.parent
+        project_root = src_path.parent
+        data_dir = project_root / "data" / "polaris2025"
+    else:
+        data_dir = Path(data_dir)
+
+    threads_file = data_dir / "polity_threads.csv"
+    if not threads_file.exists():
+        raise FileNotFoundError(
+            f"Polity threads file not found: {threads_file}. "
+            "Run 'python -m cliodynamics.data.download_polaris' first."
+        )
+
+    return load_seshat_csv(threads_file)
+
+
 def get_variable_summary(dataset: SeshatDataset, variable: str) -> dict[str, Any]:
     """
     Get summary statistics for a variable across all polities.
