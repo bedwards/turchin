@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 # Standard image settings
-DEFAULT_MODEL = 'imagen-3.0-generate-002'
+DEFAULT_MODEL = 'imagen-4.0-generate-001'
 DEFAULT_NUM_IMAGES = 1
 
 
