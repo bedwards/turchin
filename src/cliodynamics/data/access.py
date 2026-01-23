@@ -38,6 +38,7 @@ from cliodynamics.data.parser import (
     Polity,
     SeshatDataset,
     load_equinox,
+    load_polaris,
     load_seshat_csv,
     load_seshat_excel,
     parse_seshat_dataframe,
@@ -164,6 +165,12 @@ class PolityTimeSeries:
     variables: dict[str, list[TimeSeriesPoint]]
 
 
+# Valid dataset identifiers
+DATASET_EQUINOX = "equinox2020"
+DATASET_POLARIS = "polaris2025"
+VALID_DATASETS = {DATASET_EQUINOX, DATASET_POLARIS}
+
+
 class SeshatDB:
     """
     Query interface for Seshat Global History Databank.
@@ -171,32 +178,63 @@ class SeshatDB:
     Provides methods for querying polities, variables, and time ranges,
     with support for time series interpolation and DataFrame export.
 
+    Supports both Equinox-2020 and Polaris-2025 datasets:
+        - Equinox-2020: Legacy static snapshot from Zenodo (373 polities)
+        - Polaris-2025: Latest dataset from Seshat API (primary, default)
+
     Args:
         data_path: Path to directory containing Seshat data files,
                    or None to use default location.
+        dataset: Dataset to load. Options:
+                 - "polaris2025" (default): Latest Polaris-2025 dataset
+                 - "equinox2020": Legacy Equinox-2020 dataset
+                 If data_path is provided, dataset is auto-detected from path.
 
     Example:
+        >>> # Use Polaris-2025 (default)
+        >>> db = SeshatDB()
+        >>> # Or explicitly select dataset
+        >>> db_polaris = SeshatDB(dataset="polaris2025")
+        >>> db_equinox = SeshatDB(dataset="equinox2020")
+        >>> # Or use a custom path (auto-detects dataset)
         >>> db = SeshatDB("data/seshat/")
-        >>> rome = db.get_polity("RomPrin")
-        >>> print(f"Roman Principate: {rome.start_year} to {rome.end_year}")
     """
 
-    def __init__(self, data_path: Path | str | None = None) -> None:
-        """Initialize SeshatDB with path to data directory."""
+    def __init__(
+        self,
+        data_path: Path | str | None = None,
+        dataset: str = DATASET_POLARIS,
+    ) -> None:
+        """Initialize SeshatDB with path to data directory and dataset selection."""
         self._data_path = Path(data_path) if data_path else None
+        self._dataset_name = dataset.lower() if dataset else DATASET_POLARIS
         self._dataset: SeshatDataset | None = None
         self._polity_index: dict[str, Polity] = {}
         self._nga_index: dict[str, list[str]] = {}
+
+        # Validate dataset name
+        if self._dataset_name not in VALID_DATASETS:
+            raise ValueError(
+                f"Invalid dataset '{dataset}'. "
+                f"Valid options: {', '.join(sorted(VALID_DATASETS))}"
+            )
 
     def _ensure_loaded(self) -> None:
         """Load dataset if not already loaded."""
         if self._dataset is not None:
             return
 
-        logger.info("Loading Seshat dataset...")
+        logger.info(f"Loading Seshat dataset ({self._dataset_name})...")
 
         if self._data_path is not None:
             # Load from specified path
+            # Auto-detect dataset from path name
+            path_lower = str(self._data_path).lower()
+            if "polaris" in path_lower:
+                self._dataset_name = DATASET_POLARIS
+            elif "seshat" in path_lower or "equinox" in path_lower:
+                self._dataset_name = DATASET_EQUINOX
+
             excel_files = list(self._data_path.glob("*.xlsx"))
             csv_files = list(self._data_path.glob("*.csv"))
 
@@ -211,14 +249,25 @@ class SeshatDB:
                     f"No Excel or CSV files found in {self._data_path}"
                 )
         else:
-            # Use default location via load_equinox
-            self._dataset = load_equinox()
+            # Use default location based on dataset selection
+            if self._dataset_name == DATASET_POLARIS:
+                try:
+                    self._dataset = load_polaris()
+                except FileNotFoundError:
+                    logger.warning(
+                        "Polaris-2025 not found, falling back to Equinox-2020. "
+                        "Run 'python -m cliodynamics.data.download_polaris'."
+                    )
+                    self._dataset = load_equinox()
+                    self._dataset_name = DATASET_EQUINOX
+            else:
+                self._dataset = load_equinox()
 
         # Build indices
         self._build_indices()
         logger.info(
             f"Loaded {len(self._dataset.polities)} polities, "
-            f"{len(self._dataset.variables)} variables"
+            f"{len(self._dataset.variables)} variables from {self._dataset_name}"
         )
 
     def _build_indices(self) -> None:
@@ -234,6 +283,16 @@ class SeshatDB:
             if polity.nga not in self._nga_index:
                 self._nga_index[polity.nga] = []
             self._nga_index[polity.nga].append(polity.id)
+
+    @property
+    def dataset_name(self) -> str:
+        """
+        Get the name of the loaded dataset.
+
+        Returns:
+            Dataset name ("polaris2025" or "equinox2020")
+        """
+        return self._dataset_name
 
     def _normalize_variable_name(self, name: str) -> str:
         """
