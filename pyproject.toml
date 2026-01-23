@@ -38,6 +38,12 @@ dev = [
     "pytest-cov>=4.0",
     "ruff>=0.1",
 ]
+api = [
+    "seshat_api @ git+https://github.com/Seshat-Global-History-Databank/seshat_api.git",
+]
+all = [
+    "cliodynamics[dev,api]",
+]
 
 [project.urls]
 Homepage = "https://github.com/bedwards/turchin"

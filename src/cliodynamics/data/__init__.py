@@ -2,10 +2,12 @@
 Data access module for Seshat and other historical datasets.
 
 This module provides tools for downloading, parsing, and querying the Seshat
-Global History Databank (Equinox-2020 release).
+Global History Databank, supporting both local files (Equinox-2020) and the
+live Seshat API (Polaris-2025+).
 
 Key Classes:
-    SeshatDB: High-level query interface for Seshat data
+    SeshatDB: High-level query interface for local Seshat data
+    SeshatAPIClient: Client for querying the live Seshat API
     SeshatDataset: Container for parsed Seshat data
     Polity: A political entity with its variables
     ParsedValue: A parsed data value with uncertainty info
@@ -16,7 +18,7 @@ Key Functions:
     load_equinox: Load and parse the Seshat Equinox-2020 dataset
     parse_value: Parse individual Seshat data values
 
-Usage:
+Usage (local data):
     >>> from cliodynamics.data import SeshatDB
     >>> db = SeshatDB("data/seshat/")
     >>>
@@ -31,14 +33,33 @@ Usage:
     >>>
     >>> # List available polities
     >>> db.list_polities()
+
+Usage (API client - requires seshat_api package):
+    >>> from cliodynamics.data import SeshatAPIClient
+    >>> client = SeshatAPIClient()
+    >>>
+    >>> # Query polities
+    >>> polities = client.list_polities(region="Italy")
+    >>>
+    >>> # Get polity info
+    >>> rome = client.get_polity("RomPrin")
 """
 
 from cliodynamics.data.access import (
+    VARIABLE_ALIASES,
+    VARIABLE_CATEGORIES,
     PolityTimeSeries,
     SeshatDB,
     TimeSeriesPoint,
-    VARIABLE_ALIASES,
-    VARIABLE_CATEGORIES,
+)
+from cliodynamics.data.api_client import (
+    APICache,
+    PolityInfo,
+    SeshatAPIAuthenticationError,
+    SeshatAPIClient,
+    SeshatAPIConnectionError,
+    SeshatAPIError,
+    SeshatAPINotInstalledError,
 )
 from cliodynamics.data.download import download_and_extract, get_zenodo_download_url
 from cliodynamics.data.parser import (
@@ -61,6 +82,14 @@ __all__ = [
     "TimeSeriesPoint",
     "VARIABLE_ALIASES",
     "VARIABLE_CATEGORIES",
+    # API client classes
+    "SeshatAPIClient",
+    "PolityInfo",
+    "APICache",
+    "SeshatAPIError",
+    "SeshatAPINotInstalledError",
+    "SeshatAPIAuthenticationError",
+    "SeshatAPIConnectionError",
     # Download functions
     "download_and_extract",
     "get_zenodo_download_url",
