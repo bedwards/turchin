@@ -2,26 +2,22 @@
 
 Tests cover:
 - Time series plotting
-- Phase space diagrams (2D and 3D)
+- Phase space diagrams
 - Model vs data comparison plots
 - Secular cycle detection
 - Cycle visualization
-- Export functionality
 """
 
 import tempfile
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")  # Non-interactive backend for testing
-
-import matplotlib.pyplot as plt
+import altair as alt
 import numpy as np
 import pandas as pd
 import pytest
 
 from cliodynamics.viz import cycles, plots
+from cliodynamics.viz.charts import save_chart
 
 
 def sample_simulation_df() -> pd.DataFrame:
@@ -39,6 +35,7 @@ def sample_simulation_df() -> pd.DataFrame:
 
 def sample_observed_df() -> pd.DataFrame:
     """Create sample observed data for comparison testing."""
+    np.random.seed(42)
     t = np.array([0, 25, 50, 75, 100, 125, 150, 175, 200])
     N = 0.5 + 0.2 * np.sin(2 * np.pi * t / 100) + np.random.normal(0, 0.05, len(t))
     psi = (
@@ -56,55 +53,93 @@ class TestPlotTimeSeries:
     def test_basic_time_series(self) -> None:
         """Test basic time series plot creation."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(df, variables=["N", "W"], title="Test Plot")
+        chart = plots.plot_time_series(df, variables=["N", "W"], title="Test Plot")
 
-        assert isinstance(fig, plt.Figure)
-        assert len(fig.axes) == 1
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_time_series_default_variables(self) -> None:
         """Test time series with default variables."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(df)
+        chart = plots.plot_time_series(df)
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_time_series_subplot_layout(self) -> None:
-        """Test time series with subplot layout."""
+        """Test time series with subplot layout (faceted chart)."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(
+        chart = plots.plot_time_series(
             df, variables=["N", "W", "psi"], subplot_layout=True
         )
 
-        assert isinstance(fig, plt.Figure)
-        assert len(fig.axes) == 3
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_time_series_custom_labels(self) -> None:
         """Test time series with custom labels."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(
+        chart = plots.plot_time_series(
             df,
             variables=["N", "W"],
             labels=["Population", "Wages"],
             title="Custom Labels",
         )
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_time_series_custom_colors(self) -> None:
         """Test time series with custom colors."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(
+        chart = plots.plot_time_series(
             df,
             variables=["N", "W"],
             colors=["red", "blue"],
         )
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_time_series_missing_variable_raises(self) -> None:
         """Test that missing variable raises ValueError."""
@@ -127,34 +162,66 @@ class TestPlotPhaseSpace:
     def test_basic_phase_space_2d(self) -> None:
         """Test basic 2D phase space plot."""
         df = sample_simulation_df()
-        fig = plots.plot_phase_space(df, x="W", y="psi")
+        chart = plots.plot_phase_space(df, x="W", y="psi")
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_phase_space_2d_no_color(self) -> None:
         """Test 2D phase space without color coding."""
         df = sample_simulation_df()
-        fig = plots.plot_phase_space(df, x="W", y="psi", color_by=None)
+        chart = plots.plot_phase_space(df, x="W", y="psi", color_by=None)
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_phase_space_2d_with_arrows(self) -> None:
-        """Test 2D phase space with direction arrows."""
+        """Test 2D phase space with direction arrows (ignored in Altair)."""
         df = sample_simulation_df()
-        fig = plots.plot_phase_space(df, x="W", y="psi", arrow_interval=20)
+        chart = plots.plot_phase_space(df, x="W", y="psi", arrow_interval=20)
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_phase_space_2d_custom_colormap(self) -> None:
-        """Test 2D phase space with custom colormap."""
+        """Test 2D phase space with custom color scheme."""
         df = sample_simulation_df()
-        fig = plots.plot_phase_space(df, x="W", y="psi", colormap="plasma")
+        chart = plots.plot_phase_space(df, x="W", y="psi", colormap="plasma")
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_phase_space_2d_missing_variable_raises(self) -> None:
         """Test that missing variable raises ValueError."""
@@ -162,32 +229,6 @@ class TestPlotPhaseSpace:
 
         with pytest.raises(ValueError, match="not in"):
             plots.plot_phase_space(df, x="nonexistent", y="psi")
-
-    def test_basic_phase_space_3d(self) -> None:
-        """Test basic 3D phase space plot."""
-        df = sample_simulation_df()
-        fig = plots.plot_phase_space_3d(df, x="N", y="W", z="psi")
-
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
-
-    def test_phase_space_3d_no_color(self) -> None:
-        """Test 3D phase space without color coding."""
-        df = sample_simulation_df()
-        fig = plots.plot_phase_space_3d(df, x="N", y="W", z="psi", color_by=None)
-
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
-
-    def test_phase_space_3d_custom_view(self) -> None:
-        """Test 3D phase space with custom viewing angle."""
-        df = sample_simulation_df()
-        fig = plots.plot_phase_space_3d(
-            df, x="N", y="W", z="psi", elevation=45, azimuth=135
-        )
-
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
 
 
 class TestPlotComparison:
@@ -198,29 +239,44 @@ class TestPlotComparison:
         model_df = sample_simulation_df()
         observed_df = sample_observed_df()
 
-        fig = plots.plot_comparison(
+        chart = plots.plot_comparison(
             model_results=model_df,
             observed_data=observed_df,
             variables=["N", "psi"],
         )
 
-        assert isinstance(fig, plt.Figure)
-        assert len(fig.axes) == 2
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_comparison_single_variable(self) -> None:
         """Test comparison plot with single variable."""
         model_df = sample_simulation_df()
         observed_df = sample_observed_df()
 
-        fig = plots.plot_comparison(
+        chart = plots.plot_comparison(
             model_results=model_df,
             observed_data=observed_df,
             variables=["psi"],
         )
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_comparison_with_confidence_bands(self) -> None:
         """Test comparison plot with confidence bands."""
@@ -231,7 +287,7 @@ class TestPlotComparison:
 
         observed_df = sample_observed_df()
 
-        fig = plots.plot_comparison(
+        chart = plots.plot_comparison(
             model_results=model_df,
             observed_data=observed_df,
             variables=["psi"],
@@ -239,8 +295,16 @@ class TestPlotComparison:
             confidence_columns={"psi": ("psi_lower", "psi_upper")},
         )
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_comparison_confidence_bands_without_columns_raises(self) -> None:
         """Test that confidence_bands without columns raises ValueError."""
@@ -256,82 +320,44 @@ class TestPlotComparison:
             )
 
 
-class TestSaveFigure:
-    """Tests for save_figure function."""
+class TestSaveChart:
+    """Tests for save_chart function with Altair charts."""
 
     def test_save_png(self) -> None:
-        """Test saving figure as PNG."""
+        """Test saving chart as PNG."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(df, variables=["N"])
+        chart = plots.plot_time_series(df, variables=["N"])
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test.png"
-            saved = plots.save_figure(fig, path)
+            saved = save_chart(chart, path, validate=False)
 
-            assert len(saved) == 1
-            assert saved[0].exists()
-            assert saved[0].suffix == ".png"
-
-        plt.close(fig)
+            assert saved.exists()
+            assert saved.suffix == ".png"
 
     def test_save_svg(self) -> None:
-        """Test saving figure as SVG."""
+        """Test saving chart as SVG."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(df, variables=["N"])
+        chart = plots.plot_time_series(df, variables=["N"])
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test.svg"
-            saved = plots.save_figure(fig, path)
+            saved = save_chart(chart, path)
 
-            assert len(saved) == 1
-            assert saved[0].exists()
-            assert saved[0].suffix == ".svg"
+            assert saved.exists()
+            assert saved.suffix == ".svg"
 
-        plt.close(fig)
-
-    def test_save_pdf(self) -> None:
-        """Test saving figure as PDF."""
+    def test_save_html(self) -> None:
+        """Test saving chart as HTML."""
         df = sample_simulation_df()
-        fig = plots.plot_time_series(df, variables=["N"])
+        chart = plots.plot_time_series(df, variables=["N"])
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            path = Path(tmpdir) / "test.pdf"
-            saved = plots.save_figure(fig, path)
+            path = Path(tmpdir) / "test.html"
+            saved = save_chart(chart, path)
 
-            assert len(saved) == 1
-            assert saved[0].exists()
-            assert saved[0].suffix == ".pdf"
-
-        plt.close(fig)
-
-    def test_save_multiple_formats(self) -> None:
-        """Test saving figure in multiple formats."""
-        df = sample_simulation_df()
-        fig = plots.plot_time_series(df, variables=["N"])
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = Path(tmpdir) / "test"
-            saved = plots.save_figure(fig, path, formats=["png", "svg", "pdf"])
-
-            assert len(saved) == 3
-            assert all(p.exists() for p in saved)
-            suffixes = {p.suffix for p in saved}
-            assert suffixes == {".png", ".svg", ".pdf"}
-
-        plt.close(fig)
-
-    def test_save_unsupported_format_raises(self) -> None:
-        """Test that unsupported format raises ValueError."""
-        df = sample_simulation_df()
-        fig = plots.plot_time_series(df, variables=["N"])
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = Path(tmpdir) / "test.gif"
-
-            with pytest.raises(ValueError, match="Unsupported format"):
-                plots.save_figure(fig, path)
-
-        plt.close(fig)
+            assert saved.exists()
+            assert saved.suffix == ".html"
 
 
 class TestDetectPeaksAndTroughs:
@@ -432,32 +458,56 @@ class TestPlotWithCycles:
         df = sample_simulation_df()
         detected = cycles.detect_secular_cycles(df["psi"], df["t"])
 
-        fig = cycles.plot_with_cycles(df, detected)
+        chart = cycles.plot_with_cycles(df, detected)
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_cycle_plot_without_phases(self) -> None:
         """Test cycle plot without phase shading."""
         df = sample_simulation_df()
         detected = cycles.detect_secular_cycles(df["psi"], df["t"])
 
-        fig = cycles.plot_with_cycles(df, detected, show_phases=False)
+        chart = cycles.plot_with_cycles(df, detected, show_phases=False)
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_cycle_plot_without_markers(self) -> None:
         """Test cycle plot without peak/trough markers."""
         df = sample_simulation_df()
         detected = cycles.detect_secular_cycles(df["psi"], df["t"])
 
-        fig = cycles.plot_with_cycles(
+        chart = cycles.plot_with_cycles(
             df, detected, show_peaks=False, show_troughs=False
         )
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
 
 class TestPlotCycleComparison:
@@ -468,21 +518,36 @@ class TestPlotCycleComparison:
         df = sample_simulation_df()
         detected = cycles.detect_secular_cycles(df["psi"], df["t"])
 
-        fig = cycles.plot_cycle_comparison(detected)
+        chart = cycles.plot_cycle_comparison(detected)
 
-        assert isinstance(fig, plt.Figure)
-        assert len(fig.axes) == 4
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
     def test_cycle_comparison_no_cycles(self) -> None:
         """Test cycle comparison with no cycles detected."""
         # Monotonic data with no cycles
         result = cycles.CycleDetectionResult(cycles=[], peaks=[], troughs=[])
 
-        fig = cycles.plot_cycle_comparison(result)
+        chart = cycles.plot_cycle_comparison(result)
 
-        assert isinstance(fig, plt.Figure)
-        plt.close(fig)
+        assert isinstance(
+            chart,
+            (
+                alt.Chart,
+                alt.LayerChart,
+                alt.FacetChart,
+                alt.VConcatChart,
+                alt.HConcatChart,
+            ),
+        )
 
 
 class TestComputeCycleStatistics:
@@ -519,7 +584,7 @@ class TestVariableLabels:
         """Test that default labels are used."""
         assert "N" in plots.VARIABLE_LABELS
         assert "psi" in plots.VARIABLE_LABELS
-        assert "\u03c8" in plots.VARIABLE_LABELS["psi"]  # Greek psi
+        assert "ψ" in plots.VARIABLE_LABELS["psi"]  # Greek psi
 
     def test_default_colors(self) -> None:
         """Test that default colors are defined."""
