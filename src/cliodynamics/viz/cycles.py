@@ -12,14 +12,17 @@ identifies cycle phases:
 - Crisis: Peak instability, potential collapse
 - Depression/Intercycle: Recovery, low population
 
+All visualizations are built with Altair for consistency with the project's
+viz stack.
+
 IMPORTANT: After generating any plot, visually verify it looks correct
 before committing.
 
 Example:
     >>> from cliodynamics.viz.cycles import detect_secular_cycles, plot_with_cycles
     >>> cycles = detect_secular_cycles(results['psi'])
-    >>> fig = plot_with_cycles(results, cycles)
-    >>> fig.savefig('cycles.png')
+    >>> chart = plot_with_cycles(results, cycles)
+    >>> save_chart(chart, 'cycles.png')
 """
 
 from __future__ import annotations
@@ -29,10 +32,21 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
-import matplotlib.pyplot as plt
+import altair as alt
 import numpy as np
-from matplotlib.figure import Figure
-from matplotlib.patches import Rectangle
+import pandas as pd
+
+from cliodynamics.viz.charts import (
+    CHART_HEIGHT_MEDIUM,
+    CHART_WIDTH,
+    FONT_SIZE_AXIS_LABEL,
+    FONT_SIZE_AXIS_TITLE,
+    FONT_SIZE_LEGEND_LABEL,
+    FONT_SIZE_LEGEND_TITLE,
+    FONT_SIZE_TITLE,
+    configure_chart,
+    save_chart,
+)
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -334,18 +348,47 @@ def _classify_phases(
     return phases
 
 
+def _get_variable_label(variable: str) -> str:
+    """Get display label for a variable."""
+    labels = {
+        "N": "Population (N)",
+        "E": "Elite Population (E)",
+        "W": "Real Wages (W)",
+        "S": "State Fiscal Health (S)",
+        "psi": "Political Stress Index (ψ)",
+        "t": "Time",
+    }
+    return labels.get(variable, variable)
+
+
+def _to_dataframe(
+    results: "SimulationResult | pd.DataFrame",
+) -> pd.DataFrame:
+    """Convert SimulationResult or DataFrame to pandas DataFrame."""
+    if hasattr(results, "df"):
+        df = results.df
+    else:
+        df = results
+
+    # Convert polars to pandas if needed
+    if hasattr(df, "to_pandas"):
+        df = df.to_pandas()
+
+    return df
+
+
 def plot_with_cycles(
-    results: SimulationResult | DataFrame,
+    results: "SimulationResult | DataFrame",
     cycles: CycleDetectionResult,
     variable: str = "psi",
     time_column: str = "t",
     title: str = "Political Stress Index with Secular Cycles",
-    figsize: tuple[float, float] = (12, 6),
+    figsize: tuple[float, float] | None = None,
     show_phases: bool = True,
     show_peaks: bool = True,
     show_troughs: bool = True,
     annotate_cycles: bool = True,
-) -> Figure:
+) -> alt.Chart:
     """Plot time series with secular cycles highlighted.
 
     Creates a time series plot with cycle phases shown as shaded regions
@@ -364,155 +407,189 @@ def plot_with_cycles(
         annotate_cycles: If True, add cycle number labels.
 
     Returns:
-        Matplotlib Figure object.
+        Altair Chart object.
 
     Example:
         >>> cycles = detect_secular_cycles(results['psi'])
-        >>> fig = plot_with_cycles(results, cycles)
-        >>> fig.savefig('cycles.png')
+        >>> chart = plot_with_cycles(results, cycles)
+        >>> save_chart(chart, 'cycles.png')
     """
-    # Get DataFrame from results
-    if hasattr(results, "df"):
-        df = results.df
-    else:
-        df = results
+    df = _to_dataframe(results)
 
     t = df[time_column].values
     y = df[variable].values
 
-    fig, ax = plt.subplots(figsize=figsize)
+    # Calculate dimensions
+    if figsize is not None:
+        width = int(figsize[0] * 100)
+        height = int(figsize[1] * 100)
+    else:
+        width = CHART_WIDTH + 200  # Extra width for legend
+        height = CHART_HEIGHT_MEDIUM
 
-    # Set y limits first
-    y_margin = 0.1 * (y.max() - y.min())
-    ax.set_ylim(y.min() - y_margin, y.max() + y_margin)
+    # Calculate y domain with margin
+    y_min = float(y.min())
+    y_max = float(y.max())
+    y_margin = 0.1 * (y_max - y_min)
+    y_domain = [y_min - y_margin, y_max + y_margin]
 
-    # Draw phase backgrounds with correct limits
-    if show_phases:
+    layers = []
+
+    # Draw phase backgrounds
+    if show_phases and cycles.cycles:
+        phase_data = []
         for cycle in cycles.cycles:
             for start, end, phase in cycle.phases:
-                rect = Rectangle(
-                    (start, y.min() - y_margin),
-                    end - start,
-                    y.max() - y.min() + 2 * y_margin,
-                    facecolor=PHASE_COLORS[phase],
-                    alpha=0.3,
-                    edgecolor="none",
-                    zorder=1,
+                phase_data.append(
+                    {
+                        "start": start,
+                        "end": end,
+                        "phase": phase.value.title(),
+                        "y_min": y_domain[0],
+                        "y_max": y_domain[1],
+                    }
                 )
-                ax.add_patch(rect)
 
-    # Plot main line
-    ax.plot(t, y, color="#0072B2", linewidth=1.5, label=variable, zorder=3)
+        if phase_data:
+            phase_df = pd.DataFrame(phase_data)
+            phase_color_map = {
+                "Expansion": PHASE_COLORS[CyclePhase.EXPANSION],
+                "Stagflation": PHASE_COLORS[CyclePhase.STAGFLATION],
+                "Crisis": PHASE_COLORS[CyclePhase.CRISIS],
+                "Depression": PHASE_COLORS[CyclePhase.DEPRESSION],
+            }
 
-    # Mark peaks
+            phase_rects = (
+                alt.Chart(phase_df)
+                .mark_rect(opacity=0.3)
+                .encode(
+                    x=alt.X("start:Q"),
+                    x2=alt.X2("end:Q"),
+                    y=alt.Y("y_min:Q"),
+                    y2=alt.Y2("y_max:Q"),
+                    color=alt.Color(
+                        "phase:N",
+                        scale=alt.Scale(
+                            domain=list(phase_color_map.keys()),
+                            range=list(phase_color_map.values()),
+                        ),
+                        legend=alt.Legend(
+                            title="Phase",
+                            labelFontSize=FONT_SIZE_LEGEND_LABEL,
+                            titleFontSize=FONT_SIZE_LEGEND_TITLE,
+                        ),
+                    ),
+                )
+            )
+            layers.append(phase_rects)
+
+    # Main line
+    line = (
+        alt.Chart(df)
+        .mark_line(strokeWidth=1.5, color="#0072B2")
+        .encode(
+            x=alt.X(
+                f"{time_column}:Q",
+                title="Time",
+                scale=alt.Scale(domain=[float(t[0]), float(t[-1])]),
+            ),
+            y=alt.Y(
+                f"{variable}:Q",
+                title=_get_variable_label(variable),
+                scale=alt.Scale(domain=y_domain),
+            ),
+        )
+    )
+    layers.append(line)
+
+    # Peak markers
     if show_peaks and cycles.peaks:
-        peak_times = [p.time for p in cycles.peaks]
-        peak_values = [p.value for p in cycles.peaks]
-        ax.scatter(
-            peak_times,
-            peak_values,
-            color="red",
-            marker="v",
-            s=80,
-            zorder=5,
-            label="Peaks",
+        peak_df = pd.DataFrame(
+            [{"time": p.time, "value": p.value} for p in cycles.peaks]
         )
+        peaks_chart = (
+            alt.Chart(peak_df)
+            .mark_point(
+                size=80,
+                color="red",
+                shape="triangle-down",
+                filled=True,
+            )
+            .encode(
+                x=alt.X("time:Q"),
+                y=alt.Y("value:Q"),
+            )
+        )
+        layers.append(peaks_chart)
 
-    # Mark troughs
+    # Trough markers
     if show_troughs and cycles.troughs:
-        trough_times = [p.time for p in cycles.troughs]
-        trough_values = [p.value for p in cycles.troughs]
-        ax.scatter(
-            trough_times,
-            trough_values,
-            color="green",
-            marker="^",
-            s=80,
-            zorder=5,
-            label="Troughs",
+        trough_df = pd.DataFrame(
+            [{"time": p.time, "value": p.value} for p in cycles.troughs]
         )
+        troughs_chart = (
+            alt.Chart(trough_df)
+            .mark_point(
+                size=80,
+                color="green",
+                shape="triangle-up",
+                filled=True,
+            )
+            .encode(
+                x=alt.X("time:Q"),
+                y=alt.Y("value:Q"),
+            )
+        )
+        layers.append(troughs_chart)
 
-    # Annotate cycles
-    if annotate_cycles:
+    # Cycle annotations
+    if annotate_cycles and cycles.cycles:
+        annotation_data = []
         for i, cycle in enumerate(cycles.cycles):
             mid_time = (cycle.start_time + cycle.end_time) / 2
-            ax.annotate(
-                f"Cycle {i + 1}",
-                xy=(mid_time, y.max() + 0.05 * (y.max() - y.min())),
-                ha="center",
-                fontsize=9,
-                color="gray",
+            annotation_data.append(
+                {
+                    "time": mid_time,
+                    "value": y_max + 0.05 * (y_max - y_min),
+                    "label": f"Cycle {i + 1}",
+                }
             )
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel(_get_variable_label(variable))
-    ax.set_title(title, fontsize=14)
-    ax.set_xlim(t[0], t[-1])
-
-    # Create legend with phase colors
-    if show_phases:
-        from matplotlib.patches import Patch
-
-        legend_elements = [
-            Patch(
-                facecolor=PHASE_COLORS[CyclePhase.EXPANSION],
-                alpha=0.3,
-                label="Expansion",
-            ),
-            Patch(
-                facecolor=PHASE_COLORS[CyclePhase.STAGFLATION],
-                alpha=0.3,
-                label="Stagflation",
-            ),
-            Patch(facecolor=PHASE_COLORS[CyclePhase.CRISIS], alpha=0.3, label="Crisis"),
-            Patch(
-                facecolor=PHASE_COLORS[CyclePhase.DEPRESSION],
-                alpha=0.3,
-                label="Depression",
-            ),
-        ]
-        if show_peaks:
-            legend_elements.append(
-                plt.Line2D(
-                    [0],
-                    [0],
-                    marker="v",
-                    color="w",
-                    markerfacecolor="red",
-                    markersize=10,
-                    label="Peak",
+        if annotation_data:
+            annot_df = pd.DataFrame(annotation_data)
+            annotations = (
+                alt.Chart(annot_df)
+                .mark_text(
+                    fontSize=9,
+                    color="gray",
+                    align="center",
+                )
+                .encode(
+                    x=alt.X("time:Q"),
+                    y=alt.Y("value:Q"),
+                    text="label:N",
                 )
             )
-        if show_troughs:
-            legend_elements.append(
-                plt.Line2D(
-                    [0],
-                    [0],
-                    marker="^",
-                    color="w",
-                    markerfacecolor="green",
-                    markersize=10,
-                    label="Trough",
-                )
-            )
-        ax.legend(handles=legend_elements, loc="upper right", fontsize=9)
-    else:
-        ax.legend(loc="upper right")
+            layers.append(annotations)
 
-    ax.grid(True, alpha=0.3, linestyle="--", zorder=0)
-    fig.tight_layout()
+    chart = alt.layer(*layers)
+    chart = configure_chart(chart, title, width=width, height=height)
 
-    return fig
+    return chart
 
 
 def plot_cycle_comparison(
     cycles: CycleDetectionResult,
-    figsize: tuple[float, float] = (10, 8),
+    figsize: tuple[float, float] | None = None,
     title: str = "Secular Cycle Comparison",
-) -> Figure:
+) -> alt.Chart:
     """Create comparison plot of multiple secular cycles.
 
-    Aligns cycles by phase to compare patterns across cycles.
+    Creates a 2x2 grid showing:
+    - Duration histogram
+    - Amplitude histogram
+    - Duration vs amplitude scatter
+    - Cycle timeline
 
     Args:
         cycles: CycleDetectionResult with detected cycles.
@@ -520,95 +597,177 @@ def plot_cycle_comparison(
         title: Plot title.
 
     Returns:
-        Matplotlib Figure object.
+        Altair Chart object.
     """
-    if not cycles.cycles:
-        fig, ax = plt.subplots(figsize=figsize)
-        ax.text(0.5, 0.5, "No cycles detected", ha="center", va="center", fontsize=12)
-        ax.set_title(title)
-        return fig
+    if figsize is not None:
+        total_width = int(figsize[0] * 100)
+        total_height = int(figsize[1] * 100)
+    else:
+        total_width = CHART_WIDTH
+        total_height = CHART_HEIGHT_MEDIUM + 200
 
-    fig, axes = plt.subplots(2, 2, figsize=figsize)
+    panel_width = total_width // 2 - 50
+    panel_height = total_height // 2 - 50
+
+    if not cycles.cycles:
+        # Return empty chart with message
+        empty_df = pd.DataFrame(
+            {"text": ["No cycles detected"], "x": [0.5], "y": [0.5]}
+        )
+        chart = (
+            alt.Chart(empty_df)
+            .mark_text(fontSize=12)
+            .encode(
+                x=alt.X("x:Q", axis=None, scale=alt.Scale(domain=[0, 1])),
+                y=alt.Y("y:Q", axis=None, scale=alt.Scale(domain=[0, 1])),
+                text="text:N",
+            )
+            .properties(width=total_width, height=total_height, title=title)
+        )
+        return chart
+
+    # Extract cycle data
+    durations = [c.duration for c in cycles.cycles]
+    amplitudes = [c.amplitude for c in cycles.cycles]
+
+    cycle_df = pd.DataFrame(
+        {
+            "duration": durations,
+            "amplitude": amplitudes,
+            "cycle": [f"Cycle {i + 1}" for i in range(len(cycles.cycles))],
+            "start_time": [c.start_time for c in cycles.cycles],
+            "end_time": [c.end_time for c in cycles.cycles],
+            "peak_time": [c.peak_time for c in cycles.cycles],
+        }
+    )
 
     # 1. Duration histogram
-    ax = axes[0, 0]
-    durations = [c.duration for c in cycles.cycles]
-    ax.hist(
-        durations, bins=max(5, len(durations) // 2), color="#0072B2", edgecolor="white"
+    duration_hist = (
+        alt.Chart(cycle_df)
+        .mark_bar(color="#0072B2")
+        .encode(
+            x=alt.X(
+                "duration:Q",
+                bin=alt.Bin(maxbins=max(5, len(durations) // 2)),
+                title="Cycle Duration",
+            ),
+            y=alt.Y("count()", title="Count"),
+        )
+        .properties(
+            width=panel_width, height=panel_height, title="Cycle Duration Distribution"
+        )
     )
-    ax.axvline(
-        np.mean(durations),
-        color="red",
-        linestyle="--",
-        label=f"Mean: {np.mean(durations):.1f}",
+
+    # Add mean line
+    mean_duration = np.mean(durations)
+    duration_rule = (
+        alt.Chart(pd.DataFrame({"mean": [mean_duration]}))
+        .mark_rule(color="red", strokeDash=[5, 5])
+        .encode(x=alt.X("mean:Q"))
     )
-    ax.set_xlabel("Cycle Duration")
-    ax.set_ylabel("Count")
-    ax.set_title("Cycle Duration Distribution")
-    ax.legend()
+
+    duration_chart = alt.layer(duration_hist, duration_rule)
 
     # 2. Amplitude histogram
-    ax = axes[0, 1]
-    amplitudes = [c.amplitude for c in cycles.cycles]
-    ax.hist(
-        amplitudes,
-        bins=max(5, len(amplitudes) // 2),
-        color="#D55E00",
-        edgecolor="white",
+    amplitude_hist = (
+        alt.Chart(cycle_df)
+        .mark_bar(color="#D55E00")
+        .encode(
+            x=alt.X(
+                "amplitude:Q",
+                bin=alt.Bin(maxbins=max(5, len(amplitudes) // 2)),
+                title="Peak Amplitude",
+            ),
+            y=alt.Y("count()", title="Count"),
+        )
+        .properties(
+            width=panel_width, height=panel_height, title="Cycle Amplitude Distribution"
+        )
     )
-    ax.axvline(
-        np.mean(amplitudes),
-        color="red",
-        linestyle="--",
-        label=f"Mean: {np.mean(amplitudes):.2f}",
-    )
-    ax.set_xlabel("Peak Amplitude")
-    ax.set_ylabel("Count")
-    ax.set_title("Cycle Amplitude Distribution")
-    ax.legend()
 
-    # 3. Duration vs amplitude scatter
-    ax = axes[1, 0]
-    ax.scatter(durations, amplitudes, color="#009E73", s=60)
-    ax.set_xlabel("Duration")
-    ax.set_ylabel("Amplitude")
-    ax.set_title("Duration vs Amplitude")
-    # Add correlation
+    mean_amplitude = np.mean(amplitudes)
+    amplitude_rule = (
+        alt.Chart(pd.DataFrame({"mean": [mean_amplitude]}))
+        .mark_rule(color="red", strokeDash=[5, 5])
+        .encode(x=alt.X("mean:Q"))
+    )
+
+    amplitude_chart = alt.layer(amplitude_hist, amplitude_rule)
+
+    # 3. Duration vs Amplitude scatter
+    scatter = (
+        alt.Chart(cycle_df)
+        .mark_point(size=60, color="#009E73", filled=True)
+        .encode(
+            x=alt.X("duration:Q", title="Duration"),
+            y=alt.Y("amplitude:Q", title="Amplitude"),
+        )
+        .properties(
+            width=panel_width, height=panel_height, title="Duration vs Amplitude"
+        )
+    )
+
+    # Add correlation annotation if enough data
     if len(durations) > 2:
         corr = np.corrcoef(durations, amplitudes)[0, 1]
-        ax.annotate(
-            f"r = {corr:.2f}", xy=(0.05, 0.95), xycoords="axes fraction", fontsize=10
+        corr_df = pd.DataFrame(
+            {"text": [f"r = {corr:.2f}"], "x": [min(durations)], "y": [max(amplitudes)]}
         )
+        corr_text = (
+            alt.Chart(corr_df)
+            .mark_text(align="left", baseline="top", fontSize=10)
+            .encode(x="x:Q", y="y:Q", text="text:N")
+        )
+        scatter = alt.layer(scatter, corr_text)
 
     # 4. Cycle timeline
-    ax = axes[1, 1]
-    for i, cycle in enumerate(cycles.cycles):
-        y = len(cycles.cycles) - i
-        ax.barh(y, cycle.duration, left=cycle.start_time, color="#0072B2", alpha=0.7)
-        ax.scatter([cycle.peak_time], [y], color="red", marker="v", s=50, zorder=5)
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Cycle Number")
-    ax.set_title("Cycle Timeline")
-    ax.set_yticks(range(1, len(cycles.cycles) + 1))
-    ax.set_yticklabels([f"Cycle {i}" for i in range(len(cycles.cycles), 0, -1)])
+    timeline = (
+        alt.Chart(cycle_df)
+        .mark_bar(color="#0072B2", opacity=0.7)
+        .encode(
+            x=alt.X("start_time:Q", title="Time"),
+            x2=alt.X2("end_time:Q"),
+            y=alt.Y(
+                "cycle:N",
+                title="Cycle Number",
+                sort=alt.SortField("start_time", order="descending"),
+            ),
+        )
+        .properties(width=panel_width, height=panel_height, title="Cycle Timeline")
+    )
 
-    fig.suptitle(title, fontsize=14, y=1.02)
-    fig.tight_layout()
+    # Add peak markers
+    peak_markers = (
+        alt.Chart(cycle_df)
+        .mark_point(color="red", shape="triangle-down", size=50)
+        .encode(
+            x=alt.X("peak_time:Q"),
+            y=alt.Y("cycle:N", sort=alt.SortField("start_time", order="descending")),
+        )
+    )
 
-    return fig
+    timeline_chart = alt.layer(timeline, peak_markers)
 
+    # Combine into 2x2 grid
+    top_row = alt.hconcat(duration_chart, amplitude_chart)
+    bottom_row = alt.hconcat(scatter, timeline_chart)
 
-def _get_variable_label(variable: str) -> str:
-    """Get display label for a variable."""
-    labels = {
-        "N": "Population (N)",
-        "E": "Elite Population (E)",
-        "W": "Real Wages (W)",
-        "S": "State Fiscal Health (S)",
-        "psi": "Political Stress Index (\u03c8)",
-        "t": "Time",
-    }
-    return labels.get(variable, variable)
+    chart = (
+        alt.vconcat(top_row, bottom_row)
+        .properties(
+            title=alt.TitleParams(text=title, fontSize=FONT_SIZE_TITLE, anchor="start")
+        )
+        .configure_axis(
+            labelFontSize=FONT_SIZE_AXIS_LABEL,
+            titleFontSize=FONT_SIZE_AXIS_TITLE,
+        )
+        .configure_legend(
+            labelFontSize=FONT_SIZE_LEGEND_LABEL,
+            titleFontSize=FONT_SIZE_LEGEND_TITLE,
+        )
+    )
+
+    return chart
 
 
 def compute_cycle_statistics(cycles: CycleDetectionResult) -> dict:
@@ -655,5 +814,6 @@ __all__ = [
     "plot_with_cycles",
     "plot_cycle_comparison",
     "compute_cycle_statistics",
+    "save_chart",
     "PHASE_COLORS",
 ]

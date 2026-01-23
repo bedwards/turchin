@@ -1,14 +1,18 @@
 """
 Visualization module for cliodynamics.
 
-Provides standardized chart, image, plot, and animation generation for essays and analysis.
+Provides standardized chart, image, plot, and animation generation
+for essays and analysis.
+
+All static visualizations use Altair for consistency. 3D and animated
+visualizations use Plotly (in the animations module).
 
 Submodules:
     charts: Altair-based charts (timelines, bar charts, heatmaps)
     images: Gemini-generated illustrations
-    plots: Matplotlib-based scientific plots (time series, phase space)
-    cycles: Secular cycle detection and visualization
-    animations: Animated visualizations for SDT simulations
+    plots: Altair-based scientific plots (time series, phase space)
+    cycles: Altair-based secular cycle detection and visualization
+    animations: Plotly-based animated visualizations for SDT simulations
 
 Usage:
     from cliodynamics.viz import charts, images, plots, cycles, animations
@@ -21,12 +25,13 @@ Usage:
     images.generate_image("A detailed prompt...", "output.png")
 
     # Create time series plot
-    fig = plots.plot_time_series(results, variables=['N', 'W', 'psi'])
-    plots.save_figure(fig, 'timeseries.png')
+    chart = plots.plot_time_series(results, variables=['N', 'W', 'psi'])
+    plots.save_chart(chart, 'timeseries.png')
 
     # Detect and plot secular cycles
     detected = cycles.detect_secular_cycles(results['psi'])
-    fig = cycles.plot_with_cycles(results, detected)
+    chart = cycles.plot_with_cycles(results, detected)
+    cycles.save_chart(chart, 'cycles.png')
 
     # Create animations
     anim = animations.animate_time_series(results, variables=['N', 'W', 'psi'])
