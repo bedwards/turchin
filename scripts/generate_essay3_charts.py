@@ -171,7 +171,7 @@ def generate_wage_dynamics_chart():
     chart = alt.Chart(df).mark_line(strokeWidth=2.5).encode(
         x=alt.X('time:Q', title='Time (years)'),
         y=alt.Y('value:Q', title='Value (normalized)',
-                scale=alt.Scale(domain=[0, 1.5])),
+                scale=alt.Scale(domain=[0, 1.5], clamp=True)),
         color=alt.Color('variable:N', title='Variable',
                        scale=alt.Scale(domain=['Wages (W)', 'Population (N)', 'Elites (E x5)'],
                                        range=['#e74c3c', '#3498db', '#9b59b6']))
@@ -206,7 +206,7 @@ def generate_state_dynamics_chart():
     chart = alt.Chart(df).mark_line(strokeWidth=2.5).encode(
         x=alt.X('time:Q', title='Time (years)'),
         y=alt.Y('value:Q', title='Value (normalized)',
-                scale=alt.Scale(domain=[0, 1.5])),
+                scale=alt.Scale(domain=[0, 1.5], clamp=True)),
         color=alt.Color('variable:N', title='Variable',
                        scale=alt.Scale(domain=['State Health (S)', 'Elite Burden (E x5)', 'Revenue Base (W*N/2)'],
                                        range=['#2ecc71', '#e74c3c', '#f39c12']))
