@@ -49,3 +49,6 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated animation examples (large files)
+docs/assets/animations/examples/
