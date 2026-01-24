@@ -40,66 +40,54 @@ screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
--- Create main container frame (top-center)
+-- Create main container frame (top-left corner, 50% smaller, more transparent)
 local container = Instance.new("Frame")
 container.Name = "Container"
-container.Size = UDim2.new(0, 300, 0, 100)
-container.Position = UDim2.new(0.5, -150, 0, 20)
+container.Size = UDim2.new(0, 120, 0, 50)
+container.Position = UDim2.new(0, 10, 0, 10)
 container.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-container.BackgroundTransparency = 0.3
+container.BackgroundTransparency = 0.6
 container.BorderSizePixel = 0
 container.Parent = screenGui
 
 -- Add corner rounding
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
+corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = container
 
 -- Create year label at top
 local yearLabel = Instance.new("TextLabel")
 yearLabel.Name = "Year"
-yearLabel.Size = UDim2.new(1, 0, 0, 20)
-yearLabel.Position = UDim2.new(0, 0, 0, 6)
+yearLabel.Size = UDim2.new(1, 0, 0, 12)
+yearLabel.Position = UDim2.new(0, 0, 0, 4)
 yearLabel.BackgroundTransparency = 1
 yearLabel.Text = "100 BCE"
 yearLabel.TextColor3 = Color3.fromRGB(255, 220, 150)
-yearLabel.TextSize = 16
+yearLabel.TextSize = 10
 yearLabel.Font = Enum.Font.GothamBold
 yearLabel.Parent = container
 
--- Create title label
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, 0, 0, 18)
-titleLabel.Position = UDim2.new(0, 0, 0, 28)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "POLITICAL STRESS"
-titleLabel.TextColor3 = Color3.fromRGB(180, 180, 200)
-titleLabel.TextSize = 12
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Parent = container
-
--- Create percentage label
+-- Create percentage label (removed title label - just show the number)
 local percentLabel = Instance.new("TextLabel")
 percentLabel.Name = "Percent"
-percentLabel.Size = UDim2.new(1, 0, 0, 36)
-percentLabel.Position = UDim2.new(0, 0, 0, 44)
+percentLabel.Size = UDim2.new(1, 0, 0, 18)
+percentLabel.Position = UDim2.new(0, 0, 0, 16)
 percentLabel.BackgroundTransparency = 1
 percentLabel.Text = "5%"
 percentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-percentLabel.TextSize = 32
+percentLabel.TextSize = 16
 percentLabel.Font = Enum.Font.GothamBold
 percentLabel.Parent = container
 
 -- Create status label
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Name = "Status"
-statusLabel.Size = UDim2.new(1, 0, 0, 16)
-statusLabel.Position = UDim2.new(0, 0, 1, -22)
+statusLabel.Size = UDim2.new(1, 0, 0, 12)
+statusLabel.Position = UDim2.new(0, 0, 1, -14)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = "Peaceful"
 statusLabel.TextColor3 = Color3.fromRGB(100, 200, 100)
-statusLabel.TextSize = 12
+statusLabel.TextSize = 8
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.Parent = container
 

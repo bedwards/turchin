@@ -187,7 +187,7 @@ local function fadePathParticles()
 end
 
 --[[
-    Create a floating hint billboard above a control.
+    Create a floating hint billboard above a control (subtle, smaller).
 ]]
 local function createHintBillboard(x: number, z: number, stationName: string): BillboardGui
     local groundY = TerrainUtils.getGroundY(x, z)
@@ -196,65 +196,55 @@ local function createHintBillboard(x: number, z: number, stationName: string): B
     local anchor = Instance.new("Part")
     anchor.Name = stationName .. "_HintAnchor"
     anchor.Size = Vector3.new(1, 1, 1)
-    anchor.Position = Vector3.new(x, groundY + 12, z)
+    anchor.Position = Vector3.new(x, groundY + 8, z)
     anchor.Anchored = true
     anchor.Transparency = 1
     anchor.CanCollide = false
     anchor.Parent = tutorialFolder
 
-    -- Create billboard
+    -- Create billboard (smaller, not always on top)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = stationName .. "_Hint"
-    billboard.Size = UDim2.new(0, 250, 0, 100)
+    billboard.Size = UDim2.new(0, 120, 0, 35)
     billboard.StudsOffset = Vector3.new(0, 0, 0)
     billboard.Adornee = anchor
-    billboard.AlwaysOnTop = true
+    billboard.AlwaysOnTop = false
     billboard.Parent = anchor
 
-    -- Background frame
+    -- Background frame (more transparent)
     local frame = Instance.new("Frame")
     frame.Name = "Background"
     frame.Size = UDim2.new(1, 0, 1, 0)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    frame.BackgroundTransparency = 0.3
+    frame.BackgroundTransparency = 0.6
     frame.BorderSizePixel = 0
     frame.Parent = billboard
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = frame
 
-    -- Hint text
+    -- Hint text (simplified, smaller)
     local hintLabel = Instance.new("TextLabel")
     hintLabel.Name = "HintText"
-    hintLabel.Size = UDim2.new(1, -10, 0.5, 0)
-    hintLabel.Position = UDim2.new(0, 5, 0, 5)
+    hintLabel.Size = UDim2.new(1, -6, 1, -6)
+    hintLabel.Position = UDim2.new(0, 3, 0, 3)
     hintLabel.BackgroundTransparency = 1
-    hintLabel.Text = "Stand on plates to control"
+    hintLabel.Text = "Step on plates"
     hintLabel.TextColor3 = AssetConfig.Tutorial.HintColor
-    hintLabel.TextSize = 14
-    hintLabel.Font = Enum.Font.GothamBold
+    hintLabel.TextTransparency = 0.2
+    hintLabel.TextSize = 10
+    hintLabel.Font = Enum.Font.Gotham
     hintLabel.TextXAlignment = Enum.TextXAlignment.Center
     hintLabel.Parent = frame
 
-    -- Instruction text
-    local instructionLabel = Instance.new("TextLabel")
-    instructionLabel.Name = "InstructionText"
-    instructionLabel.Size = UDim2.new(1, -10, 0.5, 0)
-    instructionLabel.Position = UDim2.new(0, 5, 0.5, 0)
-    instructionLabel.BackgroundTransparency = 1
-    instructionLabel.Text = "GREEN = Increase | RED = Decrease"
-    instructionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    instructionLabel.TextSize = 12
-    instructionLabel.Font = Enum.Font.Gotham
-    instructionLabel.TextXAlignment = Enum.TextXAlignment.Center
-    instructionLabel.Parent = frame
+    -- Removed instruction text for cleaner appearance
 
-    -- Glowing border
+    -- Subtle border
     local stroke = Instance.new("UIStroke")
     stroke.Color = AssetConfig.Tutorial.GlowColor
-    stroke.Thickness = 2
-    stroke.Transparency = 0.3
+    stroke.Thickness = 1
+    stroke.Transparency = 0.6
     stroke.Parent = frame
 
     table.insert(hintBillboards, billboard)
