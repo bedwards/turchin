@@ -37,6 +37,7 @@ from cliodynamics.viz.charts import (
     FONT_SIZE_AXIS_TITLE,
     FONT_SIZE_TITLE,
     save_chart,
+    year_axis,
 )
 
 # Try to import Gemini image generation
@@ -80,7 +81,7 @@ def generate_population_chart():
         alt.Chart(df)
         .mark_circle(size=60, color="#2563eb")
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "N:Q",
                 title="Population (Normalized)",
@@ -94,7 +95,7 @@ def generate_population_chart():
     line = (
         alt.Chart(df)
         .mark_line(strokeWidth=2, color="#dc2626")
-        .encode(x="year:Q", y="N_model:Q")
+        .encode(x=year_axis("year"), y="N_model:Q")
     )
 
     # Crisis period annotations
@@ -160,7 +161,7 @@ def generate_elite_chart():
         alt.Chart(df)
         .mark_line(strokeWidth=2.5, color="#7c3aed")
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "E:Q",
                 title="Elite Population (Normalized)",
@@ -172,7 +173,7 @@ def generate_elite_chart():
     points = (
         alt.Chart(df)
         .mark_circle(size=40, color="#7c3aed", opacity=0.7)
-        .encode(x="year:Q", y="E:Q", tooltip=["year", "E"])
+        .encode(x=year_axis("year"), y="E:Q", tooltip=["year", "E"])
     )
 
     # Peak annotation
@@ -237,7 +238,7 @@ def generate_wages_chart():
             opacity=0.6,
         )
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "W:Q",
                 title="Wages / Well-Being (Normalized)",
@@ -249,7 +250,7 @@ def generate_wages_chart():
     line = (
         alt.Chart(df)
         .mark_line(strokeWidth=2, color="#059669")
-        .encode(x="year:Q", y="W:Q")
+        .encode(x=year_axis("year"), y="W:Q")
     )
 
     # Reference line at 1.0
@@ -290,7 +291,7 @@ def generate_state_chart():
         alt.Chart(df)
         .mark_line(strokeWidth=2.5, color="#0891b2")
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "S:Q",
                 title="State Fiscal Health (Normalized)",
@@ -302,7 +303,7 @@ def generate_state_chart():
     points = (
         alt.Chart(df)
         .mark_circle(size=40, color="#0891b2", opacity=0.7)
-        .encode(x="year:Q", y="S:Q")
+        .encode(x=year_axis("year"), y="S:Q")
     )
 
     # Crisis regions
@@ -363,7 +364,7 @@ def generate_psi_chart():
             opacity=0.7,
         )
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "psi:Q",
                 title="Political Stress Index (PSI)",
@@ -616,7 +617,7 @@ def generate_residuals_chart():
         alt.Chart(df_long)
         .mark_circle(size=50, opacity=0.7)
         .encode(
-            x=alt.X("year:Q", title="Year (CE)"),
+            x=year_axis("year", "Year (CE)"),
             y=alt.Y(
                 "residual:Q",
                 title="Residual (Data - Model)",
@@ -725,7 +726,7 @@ def generate_cycles_chart():
             opacity=0.6,
         )
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "psi:Q",
                 title="Political Stress Index",
@@ -801,7 +802,7 @@ def generate_time_series_chart():
         alt.Chart(df_long)
         .mark_line(strokeWidth=2)
         .encode(
-            x=alt.X("year:Q", title="Year (CE)"),
+            x=year_axis("year", "Year (CE)"),
             y=alt.Y("value:Q", title="Value (Normalized)"),
             color=alt.Color(
                 "variable:N", title="Variable", scale=alt.Scale(scheme="tableau10")
@@ -832,7 +833,7 @@ def generate_summary_chart():
         alt.Chart(df)
         .mark_area(opacity=0.4, color="#dc2626")
         .encode(
-            x=alt.X("year:Q", title="Year (CE)", scale=alt.Scale(domain=[-500, 500])),
+            x=year_axis("year", "Year (CE)", scale=alt.Scale(domain=[-500, 500])),
             y=alt.Y(
                 "psi:Q",
                 title="Political Stress Index",
@@ -846,7 +847,7 @@ def generate_summary_chart():
         alt.Chart(df)
         .mark_line(strokeWidth=3, color="#2563eb")
         .encode(
-            x="year:Q",
+            x=year_axis("year"),
             y=alt.Y(
                 "N:Q",
                 title="Population (Normalized)",

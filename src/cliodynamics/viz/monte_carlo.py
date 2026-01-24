@@ -41,6 +41,7 @@ from cliodynamics.viz.charts import (
     FONT_SIZE_LEGEND_TITLE,
     configure_chart,
     save_chart,
+    year_axis,
 )
 
 if TYPE_CHECKING:
@@ -454,14 +455,14 @@ def plot_probability_over_time(
         alt.Chart(df)
         .mark_line(strokeWidth=2, color="#2171b5")
         .encode(
-            x=alt.X("year:Q", title="Time"),
+            x=year_axis("year", "Time"),
             y=alt.Y(
                 "probability:Q",
                 title="Probability",
                 scale=alt.Scale(domain=[0, 1]),
             ),
             tooltip=[
-                alt.Tooltip("year:Q", title="Time"),
+                alt.Tooltip("year:Q", title="Time", format="d"),
                 alt.Tooltip("probability:Q", title="Probability", format=".1%"),
             ],
         )
