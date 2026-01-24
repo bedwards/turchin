@@ -391,6 +391,39 @@ def _print_chart_debug_info(chart: alt.Chart) -> None:
         print(f"Could not extract debug info: {e}")
 
 
+def year_axis(
+    field: str = "year",
+    title: str = "Year",
+    **kwargs,
+) -> alt.X:
+    """
+    Create a properly formatted year axis (no commas in year labels).
+
+    Years should display as "2025" not "2,025". This helper ensures
+    correct formatting by using format='d' (integer format).
+
+    Args:
+        field: Column name for year data (default "year")
+        title: Axis title
+        **kwargs: Additional arguments passed to alt.X
+
+    Returns:
+        Configured alt.X encoding for year axis
+
+    Example:
+        >>> chart = alt.Chart(df).mark_line().encode(
+        ...     x=year_axis("year", "Year (CE)"),
+        ...     y="value:Q"
+        ... )
+    """
+    return alt.X(
+        f"{field}:Q",
+        title=title,
+        axis=alt.Axis(format="d"),  # Integer format, no commas
+        **kwargs,
+    )
+
+
 def create_timeline_chart(
     df: pd.DataFrame,
     y_column: str,

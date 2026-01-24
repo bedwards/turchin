@@ -199,6 +199,7 @@ Use `cliodynamics.viz.charts` module for consistent formatting:
 - Minimum 12pt fonts for readability
 - Auto-sizing based on data categories
 - 2x scale factor for crisp PNG export
+- **Years on x-axis: NO commas** (2025, not 2,025) - use `charts.year_axis()` helper
 
 ### Animated Visualizations
 Use the project's `cliodynamics.viz.animations` module for animated time series, phase space trajectories, and secular cycle visualizations.
