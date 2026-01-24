@@ -3,18 +3,27 @@
     Controls.server.luau
 
     Creates pressure plate controls for player interaction with SDT parameters.
+    Themed with Roman administrative systems for immersive gameplay.
 
     Features:
     - 4 control stations placed at key Roman locations
     - Each station has paired red/green plates for bidirectional control
     - Gradual parameter adjustment while standing on plate
     - Visual and audio feedback
+    - Roman-themed names with descriptive floating text
 
-    Control Stations:
-    1. PSI Control (Forum) - Direct PSI adjustment for testing
-    2. Senate Seats (Near Forum) - Controls elite recruitment rate (alpha)
-    3. Grain Dole (Market) - Controls wage recovery rate (gamma)
-    4. Legion Funding (Temple District) - Controls state spending/recovery (delta)
+    Control Stations (Roman Themed):
+    1. POLITICAL STRESS (Forum) - Direct PSI adjustment for testing
+       "Control public unrest through spectacles and speeches"
+
+    2. SENATE SEATS (Near Forum) - Controls elite recruitment rate (alpha)
+       "Expand or restrict access to the Senatorial class"
+
+    3. GRAIN DOLE (Market) - Controls wage recovery rate (gamma)
+       "The bread that feeds Rome's hungry masses"
+
+    4. TAX COLLECTORS (Temple District) - Controls state income/recovery (delta)
+       "Fund the legions or let the treasury empty"
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -310,10 +319,10 @@ createControlStation(
     STATION_LOCATIONS.forum.z,
     "decrease_psi",
     "increase_psi",
-    "DECREASE STRESS",
-    "INCREASE STRESS",
+    "CALM THE MOB",
+    "ROUSE THE MOB",
     "POLITICAL STRESS",
-    "Direct PSI Control"
+    "Control public unrest through spectacles and speeches"
 )
 
 -- Station 2: Senate Seats (Elite Recruitment - alpha)
@@ -326,7 +335,7 @@ createControlStation(
     "FEWER SEATS",
     "MORE SEATS",
     "SENATE SEATS",
-    "Elite Recruitment Rate"
+    "Expand or restrict access to the Senatorial class"
 )
 
 -- Station 3: Grain Dole (Wage Recovery - gamma)
@@ -339,20 +348,20 @@ createControlStation(
     "REDUCE DOLE",
     "INCREASE DOLE",
     "GRAIN DOLE",
-    "Worker Wage Recovery"
+    "The bread that feeds Rome's hungry masses"
 )
 
--- Station 4: Legion Funding (State Recovery - delta)
+-- Station 4: Tax Collectors (State Recovery - delta)
 createControlStation(
-    "Legion",
+    "TaxCollectors",
     STATION_LOCATIONS.templeDistrict.x,
     STATION_LOCATIONS.templeDistrict.z,
     "decrease_delta",
     "increase_delta",
-    "CUT FUNDING",
-    "RAISE FUNDING",
-    "LEGION FUNDING",
-    "State Fiscal Recovery"
+    "REDUCE TAXES",
+    "RAISE TAXES",
+    "TAX COLLECTORS",
+    "Fund the legions or let the treasury empty"
 )
 
 -- Polling loop to detect players on plates
@@ -451,10 +460,11 @@ print("==============================================")
 print("  CONTROL STATIONS READY")
 print("==============================================")
 print("")
-print("4 Control Stations:")
-print("  1. Political Stress (Forum) - Direct PSI control")
+print("4 Roman Control Stations:")
+print("  1. Political Stress (Forum) - Control public unrest")
 print("  2. Senate Seats (Near Forum) - Elite recruitment rate")
-print("  3. Grain Dole (Market) - Wage recovery rate")
-print("  4. Legion Funding (Temple) - State fiscal recovery")
+print("  3. Grain Dole (Market) - Worker wage recovery")
+print("  4. Tax Collectors (Temple) - State fiscal recovery")
 print("")
 print("Stand on plates to adjust parameters (~0.05/second)")
+print("Green = Increase, Red = Decrease")
