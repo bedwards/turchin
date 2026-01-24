@@ -124,7 +124,7 @@ df_tools = pd.DataFrame(tool_data)
 
 print("Generating tool usage chart...")
 chart4 = alt.Chart(df_tools).mark_bar().encode(
-    x=alt.X('count:Q', title='Number of Invocations', scale=alt.Scale(type='log')),
+    x=alt.X('count:Q', title='Number of Invocations', scale=alt.Scale()),
     y=alt.Y('tool:N', title=None, sort='-x'),
     color=alt.Color('category:N', title='Category',
                    scale=alt.Scale(domain=['Execution', 'Coordination', 'Information', 'Editing'],
