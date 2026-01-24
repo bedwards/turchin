@@ -5,7 +5,7 @@
     High-performance client-side particle system representing the population.
 
     Features:
-    - 1000+ glowing spheres floating at ground level
+    - Glowing spheres floating at ground level, count scales with population (N)
     - Blue = commoners, Gold = elites
     - Elites cluster in Forum zone when E is high
     - Commoners gather near market stalls
@@ -19,7 +19,7 @@
     - Reduced update frequency for distant particles
     - Spatial hashing for efficient neighbor queries
     - Batch CFrame updates
-    - Particle pooling (no creation/destruction at runtime)
+    - Dynamic particle count based on population
     - Staggered updates across frames
 ]]
 
@@ -37,7 +37,8 @@ local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
 local StateUpdateEvent = RemoteEvents:WaitForChild("StateUpdate")
 
 -- Configuration
-local TOTAL_PARTICLES = 1000
+local MIN_PARTICLES = 200 -- Minimum particles at low population
+local MAX_PARTICLES = 1000 -- Maximum particles at full population
 local ELITE_RATIO = 0.1 -- 10% elites by default
 local MAP_HALF_SIZE = 200 -- Particles spawn within this area
 local PARTICLE_SIZE = 2
@@ -93,6 +94,8 @@ local particles: { Particle } = {}
 local currentEliteRatio = ELITE_RATIO
 local currentPsi = 0.05
 local currentE = 0.1
+local currentN = 0.1 -- Start with low population for peaceful beginning
+local targetParticleCount = MIN_PARTICLES -- Will scale with N
 
 -- Container for particles
 local particleFolder: Folder
@@ -107,7 +110,7 @@ print("==============================================")
 print("  ENHANCED PARTICLE SYSTEM")
 print("==============================================")
 print("")
-print(string.format("  Target: %d particles at 60 FPS", TOTAL_PARTICLES))
+print(string.format("  Particles scale with population: %d-%d", MIN_PARTICLES, MAX_PARTICLES))
 print("  Features: Clustering, collision avoidance, crisis jitter")
 print("")
 
@@ -188,13 +191,23 @@ local function createParticle(index: number, isElite: boolean): Particle
 end
 
 --[[
-    Initialize all particles with staggered creation to avoid frame spike.
+    Calculate target particle count based on population (N).
+    Scales from MIN_PARTICLES at N=0 to MAX_PARTICLES at N=1.
+]]
+local function calculateTargetParticleCount(population: number): number
+    return math.floor(MIN_PARTICLES + population * (MAX_PARTICLES - MIN_PARTICLES))
+end
+
+--[[
+    Initialize particles with a small initial count for peaceful start.
 ]]
 local function initializeParticles()
-    print(string.format("Creating %d particles...", TOTAL_PARTICLES))
+    -- Start with low particle count - will grow as population increases
+    targetParticleCount = calculateTargetParticleCount(currentN)
+    print(string.format("Creating %d initial particles (N=%.2f)...", targetParticleCount, currentN))
 
-    local eliteCount = math.floor(TOTAL_PARTICLES * ELITE_RATIO)
-    local commonerCount = TOTAL_PARTICLES - eliteCount
+    local eliteCount = math.floor(targetParticleCount * ELITE_RATIO)
+    local commonerCount = targetParticleCount - eliteCount
 
     local particleIndex = 1
     local batchSize = 50 -- Create particles in batches
@@ -226,6 +239,80 @@ local function initializeParticles()
     print(string.format("  Created %d elites (gold)", eliteCount))
     print(string.format("  Created %d commoners (blue)", commonerCount))
     print(string.format("  Total: %d particles", #particles))
+end
+
+--[[
+    Spawn additional particles to reach target count.
+]]
+local function spawnParticles(count: number)
+    if count <= 0 then
+        return
+    end
+
+    local startIndex = #particles + 1
+    local eliteCount = math.floor(count * currentEliteRatio)
+    local commonerCount = count - eliteCount
+
+    -- Spawn elites
+    for _ = 1, eliteCount do
+        local particle = createParticle(startIndex, true)
+        table.insert(particles, particle)
+        startIndex = startIndex + 1
+    end
+
+    -- Spawn commoners
+    for _ = 1, commonerCount do
+        local particle = createParticle(startIndex, false)
+        table.insert(particles, particle)
+        startIndex = startIndex + 1
+    end
+end
+
+--[[
+    Despawn particles to reduce to target count.
+    Removes from the end of the array to maintain consistency.
+]]
+local function despawnParticles(count: number)
+    if count <= 0 then
+        return
+    end
+
+    for _ = 1, count do
+        if #particles == 0 then
+            break
+        end
+
+        local particle = particles[#particles]
+        particle.part:Destroy()
+        table.remove(particles)
+    end
+end
+
+--[[
+    Update particle count based on population (N).
+    Spawns or despawns particles gradually to match target.
+]]
+local function updateParticleCount(population: number)
+    local newTarget = calculateTargetParticleCount(population)
+
+    -- Only update if target changed significantly
+    if math.abs(newTarget - targetParticleCount) < 5 then
+        return
+    end
+
+    targetParticleCount = newTarget
+    local currentCount = #particles
+    local difference = targetParticleCount - currentCount
+
+    if difference > 0 then
+        -- Spawn particles gradually (max 20 per update to avoid frame spike)
+        local toSpawn = math.min(difference, 20)
+        spawnParticles(toSpawn)
+    elseif difference < 0 then
+        -- Despawn particles gradually
+        local toDespawn = math.min(-difference, 20)
+        despawnParticles(toDespawn)
+    end
 end
 
 --[[
@@ -454,7 +541,7 @@ local function updateEliteRatio(newRatio: number)
     end
 
     currentEliteRatio = newRatio
-    local targetEliteCount = math.floor(TOTAL_PARTICLES * newRatio)
+    local targetEliteCount = math.floor(#particles * newRatio)
 
     -- Count current elites
     local currentEliteCount = 0
@@ -499,6 +586,10 @@ StateUpdateEvent.OnClientEvent:Connect(function(state: { N: number, E: number, W
     local oldPsi = currentPsi
     currentPsi = state.psi
     currentE = state.E
+    currentN = state.N
+
+    -- Update particle count based on population
+    updateParticleCount(currentN)
 
     -- Elite ratio is E relative to typical elite population
     -- E ranges from 0.01 to 0.5, normalize to 0-0.3 range for particle display
@@ -584,9 +675,11 @@ RunService.Heartbeat:Connect(function(_dt: number)
         local estimatedFps = 1 / avgFrameTime
         print(
             string.format(
-                "[Particles] Performance: %.1f ms/frame, ~%.0f FPS capacity",
+                "[Particles] Performance: %.1f ms/frame, ~%.0f FPS capacity, %d particles (N=%.2f)",
                 avgFrameTime * 1000,
-                math.min(estimatedFps, 60)
+                math.min(estimatedFps, 60),
+                #particles,
+                currentN
             )
         )
 
@@ -598,7 +691,7 @@ end)
 
 print("")
 print("Enhanced particle system running!")
-print(string.format("  %d particles with LOD optimization", TOTAL_PARTICLES))
+print(string.format("  Initial: %d particles (scales %d-%d with population)", #particles, MIN_PARTICLES, MAX_PARTICLES))
 print(string.format("  LOD distances: near=%d, far=%d, cull=%d", LOD_NEAR_DISTANCE, LOD_FAR_DISTANCE, LOD_CULL_DISTANCE))
 print("  Elite clustering at Forum")
 print("  Commoner clustering at Market")
