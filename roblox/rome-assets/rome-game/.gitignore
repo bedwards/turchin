@@ -1,0 +1,12 @@
+# Roblox binary files
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+
+# Rojo lock files
+rojo.lock
+
+# OS files
+.DS_Store
+Thumbs.db
