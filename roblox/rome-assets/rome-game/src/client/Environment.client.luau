@@ -50,6 +50,17 @@ local dustFolder: Folder?
 local dustParticles: { Part } = {}
 
 --[[
+    Count entries in a dictionary table.
+]]
+local function countDictionary(dict: { [any]: any }): number
+    local count = 0
+    for _ in pairs(dict) do
+        count = count + 1
+    end
+    return count
+end
+
+--[[
     Find and catalog all building parts for visual effects.
 ]]
 local function catalogBuildings()
@@ -64,7 +75,6 @@ local function catalogBuildings()
                 buildingParts[child] = child.Color
             end
         end
-        print(string.format("[Environment] Cataloged %d building parts", #buildingParts))
     end
 
     -- Find procedural buildings folder
@@ -77,13 +87,22 @@ local function catalogBuildings()
         end
     end
 
+    print(string.format("[Environment] Cataloged %d building parts", countDictionary(buildingParts)))
+
     -- Find market stalls specifically
+    -- Check RomanBuildings for direct children or descendants named MarketStall*
     if romanBuildings then
         for _, child in ipairs(romanBuildings:GetChildren()) do
             if child.Name:find("MarketStall") then
-                for _, part in ipairs(child:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        table.insert(marketStalls, part)
+                -- If it's a BasePart (from AssetPlacer), add it directly
+                if child:IsA("BasePart") then
+                    table.insert(marketStalls, child)
+                else
+                    -- If it's a Model, add its descendant parts
+                    for _, part in ipairs(child:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            table.insert(marketStalls, part)
+                        end
                     end
                 end
             end
