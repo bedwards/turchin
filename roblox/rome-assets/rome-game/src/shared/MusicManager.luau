@@ -9,6 +9,7 @@
     - High PSI: Intense, dramatic music
 
     Uses smooth crossfading between tracks to avoid jarring transitions.
+    IMPORTANT: Music should NEVER stop - always at least one track at full volume.
 ]]
 
 local MusicManager = {}
@@ -82,9 +83,13 @@ end
     Calculate volume levels for smooth crossfading between tracks.
     Returns volumes for current and next track based on PSI position.
 
-    When PSI is near a threshold, we crossfade between tracks:
-    - Within 0.02 of threshold: begin fading out current
-    - At threshold: fully transitioned to next track
+    IMPORTANT: Music should NEVER stop playing. At PSI extremes (0 or 1.0),
+    the appropriate track plays at full volume with no crossfade.
+
+    When PSI is near a threshold between tracks, we crossfade:
+    - Last 20% of range: fade out current, fade in next
+    - First track has no previous track to fade from
+    - Last track has no next track to fade to (always plays at full volume)
 ]]
 function MusicManager.calculateCrossfadeVolumes(psi: number): { [number]: number }
     local volumes: { [number]: number } = {}
@@ -93,6 +98,9 @@ function MusicManager.calculateCrossfadeVolumes(psi: number): { [number]: number
     for i = 1, #MUSIC_TRACKS do
         volumes[i] = 0
     end
+
+    -- Clamp PSI to valid range to prevent edge case issues
+    psi = math.clamp(psi, 0, 1)
 
     local currentIndex = MusicManager.getTrackIndexForPsi(psi)
     local currentTrack = MUSIC_TRACKS[currentIndex]
@@ -106,17 +114,21 @@ function MusicManager.calculateCrossfadeVolumes(psi: number): { [number]: number
     -- Crossfade zone is last 20% of range
     local crossfadeStart = 0.8
 
+    -- Special case: last track should never fade out (no next track)
+    -- At PSI 1.0, the last track plays at full volume
+    if currentIndex == #MUSIC_TRACKS then
+        volumes[currentIndex] = MAX_VOLUME
+        return volumes
+    end
+
     if positionInRange < crossfadeStart then
         -- Fully in current track
         volumes[currentIndex] = MAX_VOLUME
     else
-        -- In crossfade zone
+        -- In crossfade zone - fade to next track
         local crossfadeProgress = (positionInRange - crossfadeStart) / (1 - crossfadeStart)
         volumes[currentIndex] = MAX_VOLUME * (1 - crossfadeProgress)
-
-        if currentIndex < #MUSIC_TRACKS then
-            volumes[currentIndex + 1] = MAX_VOLUME * crossfadeProgress
-        end
+        volumes[currentIndex + 1] = MAX_VOLUME * crossfadeProgress
     end
 
     return volumes

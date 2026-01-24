@@ -8,6 +8,8 @@
     - Preloads all 6 music tracks
     - Smooth crossfading based on PSI value
     - Uses TweenService for volume transitions
+    - Continuous playback guaranteed (never stops)
+    - Periodic health checks ensure sounds keep playing
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,6 +39,7 @@ local TWEEN_INFO = TweenInfo.new(MusicManager.getCrossfadeDuration(), Enum.Easin
 
 --[[
     Create a Sound object for a track.
+    All tracks are set to loop and play continuously (volume controls audibility).
 ]]
 local function createSound(track: MusicManager.MusicTrack, index: number): Sound
     local sound = Instance.new("Sound")
@@ -44,7 +47,15 @@ local function createSound(track: MusicManager.MusicTrack, index: number): Sound
     sound.SoundId = track.id
     sound.Volume = 0
     sound.Looped = true
+    sound.PlaybackSpeed = 1
     sound.Parent = SoundService
+
+    -- Ensure track restarts if it somehow stops (safety fallback)
+    sound.Ended:Connect(function()
+        if sound.Looped then
+            sound:Play()
+        end
+    end)
 
     print(string.format("  [%d] Loading: %s", index, track.name))
 
@@ -113,6 +124,18 @@ local function updateMusicForPsi(psi: number)
 end
 
 --[[
+    Ensure all sounds are playing (called periodically as a safety check).
+    Sounds play at volume 0 when inactive, ready for instant crossfade.
+]]
+local function ensureSoundsPlaying()
+    for _, sound in ipairs(sounds) do
+        if not sound.IsPlaying then
+            sound:Play()
+        end
+    end
+end
+
+--[[
     Handle PSI updates from server.
 ]]
 PsiUpdateEvent.OnClientEvent:Connect(function(psi: number)
@@ -124,6 +147,14 @@ initializeTracks()
 
 -- Set initial state (low PSI = first track)
 updateMusicForPsi(0.05)
+
+-- Periodic health check to ensure music never stops
+task.spawn(function()
+    while true do
+        task.wait(5) -- Check every 5 seconds
+        ensureSoundsPlaying()
+    end
+end)
 
 print("")
 print("Music system running!")
