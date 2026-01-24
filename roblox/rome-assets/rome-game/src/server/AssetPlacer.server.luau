@@ -5,7 +5,7 @@
     Places Roman building 3D models in the environment using mesh asset IDs.
 
     Features:
-    - Loads 3D meshes from Roblox asset library
+    - Loads 3D meshes from Roblox asset library using InsertService:CreateMeshPartAsync
     - Places buildings at appropriate flat zones
     - Creates placeholder Parts if mesh loading fails
     - Uses TerrainUtils for proper ground placement
@@ -17,9 +17,27 @@
     - Columns in rows at Forum
     - Market stalls at Market zone
     - Aqueduct chain across terrain
+
+    IMPORTANT - Mesh Loading Requirements:
+    ----------------------------------------
+    MeshPart.MeshId is READ-ONLY and cannot be set via script after creation.
+    We use InsertService:CreateMeshPartAsync() to create MeshParts with specific MeshIds.
+
+    For mesh loading to work, the following conditions must be met:
+    1. The mesh assets must be owned by the game creator (or their group)
+    2. The asset IDs must be valid Mesh asset IDs (not Decal or Model IDs)
+    3. The assets must be published and accessible
+
+    If InsertService:CreateMeshPartAsync fails, consider:
+    - Using AssetService:CreateMeshPartAsync() with EditableMesh (requires ID verification)
+    - Pre-placing MeshParts in the game and cloning them at runtime
+    - Importing the .rbxm files directly into the Roblox place
+
+    See roblox/rome-assets/CLAUDE.md for the full asset pipeline documentation.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local InsertService = game:GetService("InsertService")
 
 -- Wait for terrain to generate before placing assets
 task.wait(6)
@@ -56,14 +74,23 @@ local function findZone(name: string): { centerX: number, centerZ: number, radiu
 end
 
 --[[
-    Create a MeshPart with the specified mesh ID.
+    Create a MeshPart with the specified mesh ID using InsertService:CreateMeshPartAsync.
+
+    IMPORTANT: MeshPart.MeshId is read-only and cannot be set via script.
+    We must use InsertService:CreateMeshPartAsync() to create a MeshPart with a specific MeshId.
+
     Returns the created part or nil if creation fails.
 ]]
-local function createMeshPart(name: string, meshId: string, scale: Vector3, color: Color3): MeshPart
-    local meshPart = Instance.new("MeshPart")
+local function createMeshPart(name: string, meshId: string, scale: Vector3, color: Color3): MeshPart?
+    -- Use CreateMeshPartAsync since MeshId is read-only on MeshPart instances
+    local meshPart = InsertService:CreateMeshPartAsync(
+        meshId,
+        Enum.CollisionFidelity.Box, -- Use box collision for performance
+        Enum.RenderFidelity.Automatic -- Let Roblox determine best render quality
+    )
+
     meshPart.Name = name
     meshPart.Size = scale
-    meshPart.MeshId = meshId
     meshPart.Color = color
     meshPart.Material = Enum.Material.Limestone
     meshPart.Anchored = true
@@ -124,15 +151,20 @@ local function placeBuilding(
 
     local building: BasePart
 
-    -- Try to create mesh part
+    -- Try to create mesh part using InsertService:CreateMeshPartAsync
+    -- This is required because MeshPart.MeshId is read-only
     local success, result = pcall(function()
         return createMeshPart(name, meshId, scale, color)
     end)
 
     if success and result then
         building = result
+        print(string.format("[AssetPlacer] Successfully loaded mesh for %s", name))
     else
-        warn(string.format("[AssetPlacer] Mesh failed for %s, using placeholder", name))
+        local errorMsg = tostring(result)
+        warn(string.format("[AssetPlacer] Mesh failed for %s: %s", name, errorMsg))
+        warn(string.format("[AssetPlacer] MeshId was: %s", meshId))
+        warn("[AssetPlacer] Using placeholder instead")
         building = createPlaceholder(name, scale, color)
     end
 
