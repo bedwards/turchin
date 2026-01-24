@@ -414,4 +414,34 @@ class Simulator:
         return results
 
 
-__all__ = ["Simulator", "Event", "EventRecord", "SimulationResult", "DifferentialModel"]
+
+# Import Monte Carlo classes
+from cliodynamics.simulation.monte_carlo import (
+    Constant,
+    Distribution,
+    LogNormal,
+    MonteCarloResults,
+    MonteCarloSimulator,
+    Normal,
+    Triangular,
+    TruncatedNormal,
+    Uniform,
+)
+
+__all__ = [
+    "Simulator",
+    "Event",
+    "EventRecord",
+    "SimulationResult",
+    "DifferentialModel",
+    # Monte Carlo
+    "MonteCarloSimulator",
+    "MonteCarloResults",
+    "Distribution",
+    "Normal",
+    "Uniform",
+    "LogNormal",
+    "Triangular",
+    "Constant",
+    "TruncatedNormal",
+]

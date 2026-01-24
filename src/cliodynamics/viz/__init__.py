@@ -14,6 +14,7 @@ Submodules:
     cycles: Altair-based secular cycle detection and visualization
     animations: Matplotlib-based animated visualizations (legacy)
     plotly_animations: Plotly-based interactive animations (recommended)
+    monte_carlo: Monte Carlo visualization (fan charts, tornado plots)
 
 Usage:
     from cliodynamics.viz import charts, images, plots, cycles, plotly_animations
@@ -43,6 +44,11 @@ Usage:
         results, x='N', y='W', z='psi', camera_orbit=True
     )
     fig.write_html('phase_3d.html')
+
+    # Monte Carlo visualizations
+    from cliodynamics.viz import monte_carlo as mc_viz
+    chart = mc_viz.plot_fan_chart(mc_results, variable='psi')
+    mc_viz.save_chart(chart, 'forecast.png')
 """
 
 from cliodynamics.viz import (
@@ -50,8 +56,17 @@ from cliodynamics.viz import (
     charts,
     cycles,
     images,
+    monte_carlo,
     plots,
     plotly_animations,
 )
 
-__all__ = ["charts", "images", "plots", "cycles", "animations", "plotly_animations"]
+__all__ = [
+    "charts",
+    "images",
+    "plots",
+    "cycles",
+    "animations",
+    "plotly_animations",
+    "monte_carlo",
+]
