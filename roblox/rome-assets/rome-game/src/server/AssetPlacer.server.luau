@@ -337,14 +337,14 @@ end
 ]]
 local function placeAqueduct()
     local config = AssetConfig.Placements.RomanAqueduct
-    local segmentSpacing = 25
-    local startX = -150
+    local segmentSpacing = 70 -- Spread out for 4x scaled models
+    local startX = -200
     local startZ = 160 -- North of the main areas, near river
 
-    -- Create 5 aqueduct segments in a line
-    for i = 1, 5 do
+    -- Create 6 aqueduct segments in a line (longer chain for visual impact)
+    for i = 1, 6 do
         local x = startX + (i - 1) * segmentSpacing
-        local z = startZ + math.sin(i * 0.3) * 10 -- Slight curve
+        local z = startZ + math.sin(i * 0.3) * 15 -- Slight curve
 
         placeBuilding(
             "Aqueduct_" .. i,
@@ -382,4 +382,4 @@ print("  - Roman Temple")
 print("  - Triumphal Arch")
 print("  - 10 Doric Columns")
 print("  - 6 Market Stalls")
-print("  - 5 Aqueduct Segments")
+print("  - 6 Aqueduct Segments")
