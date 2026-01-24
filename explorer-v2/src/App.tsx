@@ -83,7 +83,6 @@ function App() {
             <span className="version-badge">v2 (TypeScript)</span>
           </div>
           <nav className="header-nav">
-            <a href="../explorer/">v1 (Python)</a>
             <a href="../">Essays</a>
             <a href="https://github.com/bedwards/turchin" target="_blank" rel="noopener">GitHub</a>
           </nav>
