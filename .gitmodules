@@ -1,0 +1,3 @@
+[submodule "roblox/rome-assets"]
+	path = roblox/rome-assets
+	url = git@github.com:splash-screen-studio/rome-assets.git
