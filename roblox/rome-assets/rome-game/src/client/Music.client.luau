@@ -28,16 +28,12 @@ print("==============================================")
 print("")
 
 -- Sound storage
-local sounds: {Sound} = {}
+local sounds: { Sound } = {}
 local currentTrackIndex = 0
 local currentPsi = 0
 
 -- Tween configuration
-local TWEEN_INFO = TweenInfo.new(
-    MusicManager.getCrossfadeDuration(),
-    Enum.EasingStyle.Quad,
-    Enum.EasingDirection.InOut
-)
+local TWEEN_INFO = TweenInfo.new(MusicManager.getCrossfadeDuration(), Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 --[[
     Create a Sound object for a track.
@@ -81,7 +77,7 @@ end
 ]]
 local function tweenVolume(sound: Sound, targetVolume: number)
     local tween = TweenService:Create(sound, TWEEN_INFO, {
-        Volume = targetVolume
+        Volume = targetVolume,
     })
     tween:Play()
 end

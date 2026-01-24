@@ -46,7 +46,7 @@ local DEFAULT_CONFIG: TerrainConfig = {
 }
 
 -- Flat zones for building placement (relative to map center)
-local FLAT_ZONES: {FlatZone} = {
+local FLAT_ZONES: { FlatZone } = {
     {
         name = "Forum",
         centerX = 0,
@@ -113,20 +113,20 @@ local FLAT_ZONES: {FlatZone} = {
 }
 
 -- Tiber River path (series of control points)
-local TIBER_RIVER_PATH: {{x: number, z: number, width: number}} = {
-    {x = -256, z = 100, width = 30},
-    {x = -180, z = 80, width = 35},
-    {x = -100, z = 120, width = 40},
-    {x = -20, z = 90, width = 45},
-    {x = 60, z = 130, width = 40},
-    {x = 140, z = 100, width = 35},
-    {x = 200, z = 140, width = 30},
-    {x = 256, z = 120, width = 25},
+local TIBER_RIVER_PATH: { { x: number, z: number, width: number } } = {
+    { x = -256, z = 100, width = 30 },
+    { x = -180, z = 80, width = 35 },
+    { x = -100, z = 120, width = 40 },
+    { x = -20, z = 90, width = 45 },
+    { x = 60, z = 130, width = 40 },
+    { x = 140, z = 100, width = 35 },
+    { x = 200, z = 140, width = 30 },
+    { x = 256, z = 120, width = 25 },
 }
 
 -- Store config for access
 local currentConfig: TerrainConfig = DEFAULT_CONFIG
-local heightCache: {[string]: number} = {}
+local heightCache: { [string]: number } = {}
 
 --[[
     Seeded noise function using math.noise with offset based on seed
@@ -252,7 +252,6 @@ function TerrainGenerator.getHeightAt(x: number, z: number): number
     local riverDist = getDistanceToRiver(x, z)
     if riverDist < 2 then
         local riverDepth = config.waterLevel - 5
-        local riverBlend = math.clamp(riverDist, 0, 1)
 
         -- Smooth valley sides
         if riverDist < 1 then
@@ -346,17 +345,8 @@ function TerrainGenerator.generate(config: TerrainConfig?)
             local height = TerrainGenerator.getHeightAt(x, z)
             local material = TerrainGenerator.getMaterialAt(x, z, height)
 
-            -- Fill from bottom to height
-            local region = Region3.new(
-                Vector3.new(x - resolution/2, 0, z - resolution/2),
-                Vector3.new(x + resolution/2, height, z + resolution/2)
-            )
-
-            terrain:FillBlock(
-                CFrame.new(x, height/2, z),
-                Vector3.new(resolution, height, resolution),
-                material
-            )
+            -- Fill terrain block
+            terrain:FillBlock(CFrame.new(x, height / 2, z), Vector3.new(resolution, height, resolution), material)
 
             cellCount += 1
         end
@@ -426,10 +416,26 @@ function TerrainGenerator.createWaterContainment()
     local wallThickness = 5
 
     local walls = {
-        {name = "North", pos = Vector3.new(0, wallHeight/2, halfSize), size = Vector3.new(config.mapSize, wallHeight, wallThickness)},
-        {name = "South", pos = Vector3.new(0, wallHeight/2, -halfSize), size = Vector3.new(config.mapSize, wallHeight, wallThickness)},
-        {name = "East", pos = Vector3.new(halfSize, wallHeight/2, 0), size = Vector3.new(wallThickness, wallHeight, config.mapSize)},
-        {name = "West", pos = Vector3.new(-halfSize, wallHeight/2, 0), size = Vector3.new(wallThickness, wallHeight, config.mapSize)},
+        {
+            name = "North",
+            pos = Vector3.new(0, wallHeight / 2, halfSize),
+            size = Vector3.new(config.mapSize, wallHeight, wallThickness),
+        },
+        {
+            name = "South",
+            pos = Vector3.new(0, wallHeight / 2, -halfSize),
+            size = Vector3.new(config.mapSize, wallHeight, wallThickness),
+        },
+        {
+            name = "East",
+            pos = Vector3.new(halfSize, wallHeight / 2, 0),
+            size = Vector3.new(wallThickness, wallHeight, config.mapSize),
+        },
+        {
+            name = "West",
+            pos = Vector3.new(-halfSize, wallHeight / 2, 0),
+            size = Vector3.new(wallThickness, wallHeight, config.mapSize),
+        },
     }
 
     for _, wallData in ipairs(walls) do
@@ -449,7 +455,7 @@ end
 --[[
     Get flat zones configuration (for external use)
 ]]
-function TerrainGenerator.getFlatZones(): {FlatZone}
+function TerrainGenerator.getFlatZones(): { FlatZone }
     return FLAT_ZONES
 end
 
