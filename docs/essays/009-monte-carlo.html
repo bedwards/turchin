@@ -135,6 +135,11 @@
 
 <p>One crucial implementation detail that makes the difference between theoretical possibility and practical utility is parallelization. Running ten thousand simulations sequentially would take hours even for our relatively fast ODE solver, making interactive exploration impractical and limiting the analyses we could conduct in reasonable timeframes. But because simulations with different parameter samples are independent, sharing no state and requiring no communication between runs, they can execute in parallel without any coordination overhead. Our implementation uses Python's multiprocessing module to distribute simulations across available CPU cores. On a four-core machine, this achieves nearly four-times speedup relative to sequential execution. On machines with more cores, the speedup scales accordingly. Modern cloud computing resources with dozens or hundreds of cores make even more ambitious analyses practical within reasonable time and cost constraints. This parallelism is a key enabling factor for Monte Carlo analysis to be practical rather than merely theoretical.</p>
 
+<figure class="animation-container">
+    <iframe src="../assets/animations/essay-070/monte-carlo-accumulation.html" width="100%" height="650" frameborder="0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;"></iframe>
+    <figcaption>Interactive animation: Watch how Monte Carlo simulation builds up a probability distribution from individual random trajectories. As more simulations accumulate, the percentile bands stabilize and reveal the true distribution of possible futures. Use the controls to play or step through the simulation process.</figcaption>
+</figure>
+
 <h2>Sensitivity Analysis: Which Parameters Matter?</h2>
 
 <p>Not all uncertainties are created equal in their effects on forecast outcomes. Some parameters, when varied across their uncertainty ranges, dramatically shift model outputs from optimistic to pessimistic scenarios that would imply completely different policy responses. Others have little effect regardless of their values, producing similar outputs whether we use the high or low end of their uncertainty range. Sensitivity analysis is the systematic study of which inputs matter most for outputs, providing quantitative guidance for where to focus our limited resources for data collection and model improvement. This matters for two distinct reasons that together make sensitivity analysis an essential component of any serious forecasting effort.</p>
@@ -142,6 +147,11 @@
 <p>Practically, sensitivity analysis guides research priorities in a world of limited resources. We have limited budgets for data collection, model refinement, and parameter estimation. We should invest those resources where they will most reduce forecast uncertainty rather than spreading them evenly across all parameters. If a parameter has little effect on outputs, improving our estimate of that parameter is low value regardless of how easy the improvement might be, because even perfect knowledge would not substantially improve our forecasts. If a parameter strongly influences outputs, reducing its uncertainty is high value even if doing so requires substantial effort, because the improvement in forecast quality justifies the investment. Sensitivity analysis provides the quantitative basis for these prioritization decisions, replacing intuitions about what seems important with measurements of what actually matters for the specific outputs we care about.</p>
 
 <p>Interpretively, sensitivity analysis reveals what drives our model's behavior and whether that matches our theoretical expectations. When we make a forecast, we are implicitly claiming that certain mechanisms dominate and certain parameters are crucial. Sensitivity analysis checks whether those implicit claims match the actual mathematical structure of our model as we have implemented it. Sometimes the check reveals that what we thought would matter does not, suggesting either that our intuitions were wrong or that we have made modeling choices that suppress effects we expected to find. Sometimes parameters we considered secondary actually dominate in ways we did not anticipate. These revelations help us understand our models more deeply and communicate our forecasts more honestly. A forecast that depends critically on a parameter we consider well-estimated differs fundamentally from one that depends on a parameter we consider speculative, even if the central predictions are identical, because the former carries more confidence than the latter.</p>
+
+<figure class="animation-container">
+    <iframe src="../assets/animations/essay-070/parameter-sensitivity.html" width="100%" height="650" frameborder="0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;"></iframe>
+    <figcaption>Interactive animation: See how changing a single parameter affects the forecast trajectory. As the elite growth rate (alpha) increases, the PSI trajectory rises more steeply. The red dashed line marks the crisis threshold. Use the controls to sweep through different parameter values.</figcaption>
+</figure>
 
 <p>The gold standard for sensitivity analysis in complex models is Sobol sensitivity indices, named for the Russian mathematician Ilya Sobol who developed them in the 1990s as extensions of earlier variance decomposition methods. Sobol indices decompose the variance of model output into contributions from individual parameters and their interactions. Unlike simpler sensitivity measures that only capture direct effects by varying one parameter at a time while holding others fixed, Sobol indices properly account for the complex ways parameters can interact through model dynamics, producing effects that depend on combinations of parameter values rather than individual values in isolation.</p>
 
@@ -185,6 +195,11 @@
 <figure>
     <img src="../assets/charts/essay-070/uncertainty-growth.png" alt="Illustration of uncertainty growing over time" style="max-width: 100%; height: auto;">
     <figcaption>Uncertainty grows systematically with forecast horizon. The narrow band near the origin reflects our relatively confident estimate of current conditions. As we project further, parameter uncertainty and model dynamics compound to produce wide bands that honestly reflect our diminishing ability to predict.</figcaption>
+</figure>
+
+<figure class="animation-container">
+    <iframe src="../assets/animations/essay-070/uncertainty-growth.html" width="100%" height="650" frameborder="0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;"></iframe>
+    <figcaption>Interactive animation: Watch the forecast cone expand as the time horizon increases. The animation reveals how confidence intervals widen year by year, demonstrating the fundamental challenge of long-range forecasting: uncertainty compounds over time.</figcaption>
 </figure>
 
 <figure>
