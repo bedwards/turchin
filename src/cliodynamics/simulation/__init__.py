@@ -428,6 +428,28 @@ from cliodynamics.simulation.monte_carlo import (
     Uniform,
 )
 
+# Import Monte Carlo classes
+from cliodynamics.simulation.monte_carlo import (
+    Constant,
+    Distribution,
+    LogNormal,
+    MonteCarloResults,
+    MonteCarloSimulator,
+    Normal,
+    Triangular,
+    TruncatedNormal,
+    Uniform,
+)
+
+# Import Ensemble classes
+from cliodynamics.simulation.ensemble import (
+    BifurcationPoint,
+    EnsembleResults,
+    EnsembleSimulator,
+    SimulationOutcome,
+    StabilityClassification,
+)
+
 __all__ = [
     "Simulator",
     "Event",
@@ -444,4 +466,10 @@ __all__ = [
     "Triangular",
     "Constant",
     "TruncatedNormal",
+    # Ensemble
+    "EnsembleSimulator",
+    "EnsembleResults",
+    "SimulationOutcome",
+    "StabilityClassification",
+    "BifurcationPoint",
 ]

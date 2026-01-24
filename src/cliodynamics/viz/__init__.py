@@ -15,6 +15,7 @@ Submodules:
     animations: Matplotlib-based animated visualizations (legacy)
     plotly_animations: Plotly-based interactive animations (recommended)
     monte_carlo: Monte Carlo visualization (fan charts, tornado plots)
+    ensemble: Ensemble visualization (phase diagrams, bifurcation diagrams)
 
 Usage:
     from cliodynamics.viz import charts, images, plots, cycles, plotly_animations
@@ -49,12 +50,18 @@ Usage:
     from cliodynamics.viz import monte_carlo as mc_viz
     chart = mc_viz.plot_fan_chart(mc_results, variable='psi')
     mc_viz.save_chart(chart, 'forecast.png')
+
+    # Ensemble visualizations
+    from cliodynamics.viz import ensemble as ens_viz
+    chart = ens_viz.plot_phase_diagram(results, x='alpha', y='gamma')
+    ens_viz.save_chart(chart, 'phase_diagram.png')
 """
 
 from cliodynamics.viz import (
     animations,
     charts,
     cycles,
+    ensemble,
     images,
     monte_carlo,
     plots,
@@ -69,4 +76,5 @@ __all__ = [
     "animations",
     "plotly_animations",
     "monte_carlo",
+    "ensemble",
 ]
