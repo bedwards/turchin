@@ -42,40 +42,40 @@ AssetConfig.Colors = {
     RedTile = Color3.fromRGB(180, 80, 60),
 }
 
--- Building placement configurations
+-- Building placement configurations (4x scale for visibility)
 AssetConfig.Placements = {
     Colosseum = {
-        scale = Vector3.new(15, 15, 15),
+        scale = Vector3.new(60, 60, 60),
         rotation = 0,
         yOffset = 0,
     },
     Pantheon = {
-        scale = Vector3.new(12, 12, 12),
+        scale = Vector3.new(48, 48, 48),
         rotation = 180,
         yOffset = 0,
     },
     RomanTemple = {
-        scale = Vector3.new(8, 8, 8),
+        scale = Vector3.new(32, 32, 32),
         rotation = 0,
         yOffset = 0,
     },
     TriumphalArch = {
-        scale = Vector3.new(6, 6, 6),
+        scale = Vector3.new(24, 24, 24),
         rotation = 90,
         yOffset = 0,
     },
     RomanAqueduct = {
-        scale = Vector3.new(10, 10, 10),
+        scale = Vector3.new(40, 40, 40),
         rotation = 0,
         yOffset = 0,
     },
     DoricColumn = {
-        scale = Vector3.new(3, 3, 3),
+        scale = Vector3.new(12, 12, 12),
         rotation = 0,
         yOffset = 0,
     },
     MarketStall = {
-        scale = Vector3.new(4, 4, 4),
+        scale = Vector3.new(16, 16, 16),
         rotation = 0,
         yOffset = 0,
     },
