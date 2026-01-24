@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: '/explorer-v2/',
+  base: mode === 'production' ? '/turchin/explorer-v2/' : '/',
   build: {
     outDir: 'dist',
     sourcemap: true,
@@ -12,4 +12,4 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
-})
+}))
