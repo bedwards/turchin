@@ -42,7 +42,7 @@ export type Params = {
 
 --[[
     Default parameters calibrated for interesting gameplay dynamics.
-    These produce secular cycles on ~5 minute timescales.
+    These produce secular cycles on ~15 minute timescales.
 ]]
 function SDT.getDefaultParams(): Params
     return {
@@ -51,7 +51,7 @@ function SDT.getDefaultParams(): Params
         alpha = 0.03, -- Elite recruitment
         beta = 0.02, -- Elite decay
         gamma = 0.04, -- Wage recovery
-        theta = 0.08, -- PSI accumulation (key for music transitions)
+        theta = 0.01, -- PSI accumulation (key for music transitions) - reduced 8x for slower gameplay
         delta = 0.03, -- State recovery
         epsilon = 0.5, -- Elite competition effect
     }
