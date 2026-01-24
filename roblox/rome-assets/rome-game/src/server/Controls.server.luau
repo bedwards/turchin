@@ -103,15 +103,15 @@ local function createControlPlate(name: string, x: number, z: number, color: Col
 end
 
 --[[
-    Create a label above a plate.
+    Create a label above a plate (subtle, smaller).
 ]]
 local function createPlateLabel(plate: Part, text: string)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "PlateLabel"
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 4, 0)
+    billboard.Size = UDim2.new(0, 80, 0, 20)
+    billboard.StudsOffset = Vector3.new(0, 2, 0)
     billboard.Adornee = plate
-    billboard.AlwaysOnTop = true
+    billboard.AlwaysOnTop = false
 
     local label = Instance.new("TextLabel")
     label.Name = "Label"
@@ -119,25 +119,26 @@ local function createPlateLabel(plate: Part, text: string)
     label.BackgroundTransparency = 1
     label.Text = text
     label.TextColor3 = Color3.new(1, 1, 1)
-    label.TextStrokeTransparency = 0.5
+    label.TextTransparency = 0.3
+    label.TextStrokeTransparency = 0.7
     label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
+    label.Font = Enum.Font.Gotham
     label.Parent = billboard
 
     billboard.Parent = plate
 end
 
 --[[
-    Create a station title above the control area.
+    Create a station title above the control area (subtle, no subtitle).
 ]]
-local function createStationTitle(x: number, z: number, title: string, subtitle: string)
+local function createStationTitle(x: number, z: number, title: string, _subtitle: string)
     local groundY = TerrainUtils.getGroundY(x, z)
 
     -- Create an invisible anchor part
     local anchor = Instance.new("Part")
     anchor.Name = title .. "_Title"
     anchor.Size = Vector3.new(1, 1, 1)
-    anchor.Position = Vector3.new(x, groundY + 8, z)
+    anchor.Position = Vector3.new(x, groundY + 5, z)
     anchor.Anchored = true
     anchor.Transparency = 1
     anchor.CanCollide = false
@@ -145,34 +146,25 @@ local function createStationTitle(x: number, z: number, title: string, subtitle:
 
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "StationTitle"
-    billboard.Size = UDim2.new(0, 300, 0, 80)
+    billboard.Size = UDim2.new(0, 100, 0, 25)
     billboard.StudsOffset = Vector3.new(0, 0, 0)
     billboard.Adornee = anchor
-    billboard.AlwaysOnTop = true
+    billboard.AlwaysOnTop = false
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, 0, 0.6, 0)
+    titleLabel.Size = UDim2.new(1, 0, 1, 0)
     titleLabel.Position = UDim2.new(0, 0, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
     titleLabel.TextColor3 = Color3.fromRGB(255, 220, 150)
-    titleLabel.TextStrokeTransparency = 0.3
+    titleLabel.TextTransparency = 0.3
+    titleLabel.TextStrokeTransparency = 0.6
     titleLabel.TextScaled = true
-    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Font = Enum.Font.Gotham
     titleLabel.Parent = billboard
 
-    local subtitleLabel = Instance.new("TextLabel")
-    subtitleLabel.Name = "Subtitle"
-    subtitleLabel.Size = UDim2.new(1, 0, 0.4, 0)
-    subtitleLabel.Position = UDim2.new(0, 0, 0.6, 0)
-    subtitleLabel.BackgroundTransparency = 1
-    subtitleLabel.Text = subtitle
-    subtitleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    subtitleLabel.TextStrokeTransparency = 0.5
-    subtitleLabel.TextScaled = true
-    subtitleLabel.Font = Enum.Font.Gotham
-    subtitleLabel.Parent = billboard
+    -- Removed subtitle for cleaner appearance
 
     billboard.Parent = anchor
 end
