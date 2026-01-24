@@ -281,6 +281,62 @@ figcaption {
   font-style: italic;
 }
 
+/* Essay figures - enhanced styling for essay visuals */
+.essay-figure {
+  margin: var(--spacing-2xl) 0;
+  text-align: center;
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.essay-figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+}
+
+.essay-figure figcaption {
+  margin-top: var(--spacing-lg);
+  padding: 0 var(--spacing-lg);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-style: normal;
+}
+
+/* Full-width figures for animations and large visualizations */
+.essay-figure.full-width {
+  margin-left: calc(-1 * var(--spacing-xl));
+  margin-right: calc(-1 * var(--spacing-xl));
+  width: calc(100% + 2 * var(--spacing-xl));
+  max-width: none;
+  border-radius: 0;
+}
+
+.essay-figure.full-width iframe {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Responsive adjustments for figures */
+@media (max-width: 768px) {
+  .essay-figure.full-width {
+    margin-left: calc(-1 * var(--spacing-md));
+    margin-right: calc(-1 * var(--spacing-md));
+    width: calc(100% + 2 * var(--spacing-md));
+  }
+
+  .essay-figure figcaption {
+    padding: 0;
+    font-size: 0.85rem;
+  }
+}
+
 /* Blockquotes */
 blockquote {
   margin: var(--spacing-xl) 0;
