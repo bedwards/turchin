@@ -204,7 +204,7 @@ def plot_fan_chart(
         height=height,
     )
 
-    return configure_chart(chart)
+    return configure_chart(chart, title)
 
 
 def plot_tornado(
@@ -329,7 +329,7 @@ def plot_tornado(
         height=height,
     )
 
-    return configure_chart(chart)
+    return configure_chart(chart, title)
 
 
 def plot_probability_heatmap(
@@ -417,7 +417,7 @@ def plot_probability_heatmap(
         )
     )
 
-    return configure_chart(chart)
+    return configure_chart(chart, title)
 
 
 def plot_probability_over_time(
@@ -480,7 +480,7 @@ def plot_probability_over_time(
         .encode(y="y:Q")
     )
 
-    return configure_chart(alt.layer(chart, rule))
+    return configure_chart(alt.layer(chart, rule), title)
 
 
 def plot_timing_distribution(
@@ -547,7 +547,7 @@ def plot_timing_distribution(
         )
     )
 
-    return configure_chart(chart)
+    return configure_chart(chart, title)
 
 
 def plot_ensemble_trajectories(
@@ -656,7 +656,7 @@ def plot_ensemble_trajectories(
         height=height,
     )
 
-    return configure_chart(chart)
+    return configure_chart(chart, title)
 
 
 def plot_parameter_scatter(
@@ -728,7 +728,7 @@ def plot_parameter_scatter(
         )
     )
 
-    return configure_chart(chart)
+    return configure_chart(chart, title)
 
 
 __all__ = [
