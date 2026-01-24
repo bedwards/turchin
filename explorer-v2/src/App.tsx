@@ -100,7 +100,7 @@ function App() {
       <header className="header">
         <div className="header-content">
           <div className="header-left">
-            <a href="/" className="logo">Cliodynamics Explorer</a>
+            <span className="logo">Cliodynamics Explorer</span>
             <span className="version-badge">v2 (TypeScript)</span>
           </div>
           <nav className="header-nav">
