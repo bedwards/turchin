@@ -6,7 +6,8 @@
 
     Features:
     - Sky color transitions with PSI: golden (peace) -> orange (tension) -> red (crisis)
-    - Fog density increases as State Health (S) decreases
+    - Fog density driven by PSI (ominous during crisis) and terrain height
+    - Low-lying areas (river valleys) have denser fog
     - Lighting brightness and ambient adjustments based on conditions
     - Smooth transitions using TweenService
 
@@ -17,6 +18,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 -- Wait for RemoteEvents
 local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
@@ -31,6 +34,20 @@ print("")
 -- Configuration
 local TWEEN_DURATION = 2.0 -- Smooth transition duration
 local BASE_CLOCK_TIME = 14 -- 2 PM, pleasant afternoon light
+local TERRAIN_FOG_UPDATE_INTERVAL = 0.5 -- How often to check terrain height (seconds)
+
+-- Terrain height thresholds for fog calculation
+-- Based on TerrainGenerator: baseHeight=20, maxHeight=100, waterLevel=15
+local TERRAIN_LOW_HEIGHT = 25 -- River valleys and low areas (near water level)
+local TERRAIN_HIGH_HEIGHT = 60 -- Hilltops and elevated areas
+local TERRAIN_HEIGHT_RANGE = TERRAIN_HIGH_HEIGHT - TERRAIN_LOW_HEIGHT
+
+-- Fog density configuration
+-- PSI is the primary driver, terrain provides local variation
+local FOG_MIN_DENSITY = 0.15 -- Clear day, high ground, low PSI
+local FOG_MAX_DENSITY = 0.85 -- Crisis fog, low ground, high PSI
+local FOG_PSI_WEIGHT = 0.7 -- PSI contributes 70% to fog intensity
+local FOG_TERRAIN_WEIGHT = 0.3 -- Terrain contributes 30% to fog intensity
 
 -- Color presets for different stress levels
 local SKY_COLORS = {
@@ -53,11 +70,15 @@ local AMBIENT_COLORS = {
 
 -- Tween info for smooth transitions
 local TWEEN_INFO = TweenInfo.new(TWEEN_DURATION, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local TERRAIN_TWEEN_INFO = TweenInfo.new(1.0, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 -- Current state
 local currentPsi: number = 0.05
 local currentStateHealth: number = 0.8
+local currentTerrainFactor: number = 0.5 -- 0 = high ground (less fog), 1 = low ground (more fog)
 local atmosphere: Atmosphere?
+local localPlayer = Players.LocalPlayer
+local lastTerrainUpdate: number = 0
 
 --[[
     Create or get the Atmosphere instance in Lighting.
@@ -156,14 +177,54 @@ local function calculateAmbientColor(psi: number): Color3
 end
 
 --[[
-    Calculate fog density based on State Health.
-    Lower state health = more fog (metaphor for uncertainty/chaos).
+    Calculate terrain factor based on player's current height.
+    Returns a value from 0 (high ground, less fog) to 1 (low ground, more fog).
 ]]
-local function calculateFogDensity(stateHealth: number): number
-    -- State health ranges from 0.1 to 1.0
-    -- Map to fog density 0.1 (clear, healthy) to 0.8 (foggy, unhealthy)
-    local normalizedHealth = math.clamp((stateHealth - 0.1) / 0.9, 0, 1)
-    local density = 0.8 - normalizedHealth * 0.7
+local function calculateTerrainFactor(): number
+    if not localPlayer then
+        return 0.5 -- Default mid-value if no player
+    end
+
+    local character = localPlayer.Character
+    if not character then
+        return 0.5
+    end
+
+    local rootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+    if not rootPart then
+        return 0.5
+    end
+
+    local playerY = rootPart.Position.Y
+
+    -- Normalize height to terrain factor
+    -- Low areas (near water/valleys) -> 1.0 (more fog)
+    -- High areas (hilltops) -> 0.0 (less fog)
+    local normalizedHeight = (playerY - TERRAIN_LOW_HEIGHT) / TERRAIN_HEIGHT_RANGE
+    local terrainFactor = 1 - math.clamp(normalizedHeight, 0, 1)
+
+    return terrainFactor
+end
+
+--[[
+    Calculate fog density based on PSI and terrain height.
+    PSI is the primary driver (70%), terrain provides local variation (30%).
+]]
+local function calculateFogDensity(psi: number, terrainFactor: number): number
+    -- PSI contribution: Higher PSI = more fog (ominous atmosphere during crisis)
+    -- PSI ranges from ~0.05 (peaceful) to ~1.0 (crisis)
+    local psiContribution = math.clamp(psi, 0, 1)
+
+    -- Terrain contribution: Lower terrain = more fog (valley mist effect)
+    -- terrainFactor is 0 (high ground) to 1 (low ground)
+    local terrainContribution = terrainFactor
+
+    -- Weighted combination
+    local combinedFactor = (psiContribution * FOG_PSI_WEIGHT) + (terrainContribution * FOG_TERRAIN_WEIGHT)
+
+    -- Map to density range
+    local density = FOG_MIN_DENSITY + (FOG_MAX_DENSITY - FOG_MIN_DENSITY) * combinedFactor
+
     return density
 end
 
@@ -180,9 +241,9 @@ local function calculateBrightness(psi: number, stateHealth: number): number
 end
 
 --[[
-    Update atmosphere based on current game state.
+    Update atmosphere based on current game state and terrain.
 ]]
-local function updateAtmosphere(psi: number, stateHealth: number)
+local function updateAtmosphere(psi: number, stateHealth: number, terrainFactor: number)
     if not atmosphere then
         return
     end
@@ -190,11 +251,12 @@ local function updateAtmosphere(psi: number, stateHealth: number)
     -- Calculate target values
     local targetSkyColor = calculateAtmosphereColor(psi)
     local targetAmbientColor = calculateAmbientColor(psi)
-    local targetFogDensity = calculateFogDensity(stateHealth)
+    local targetFogDensity = calculateFogDensity(psi, terrainFactor)
     local targetBrightness = calculateBrightness(psi, stateHealth)
 
-    -- Calculate haze based on combined conditions
-    local targetHaze = 1 + (1 - stateHealth) * 4 + psi * 3
+    -- Calculate haze based on PSI (primary) and terrain (secondary)
+    -- More haze during crisis and in low areas
+    local targetHaze = 1 + psi * 4 + terrainFactor * 2
 
     -- Tween atmosphere properties
     local atmTween = TweenService:Create(atmosphere, TWEEN_INFO, {
@@ -229,11 +291,30 @@ local function updateAtmosphere(psi: number, stateHealth: number)
 end
 
 --[[
+    Update fog based on terrain height only (for smooth local transitions).
+    Uses faster tween for responsive terrain-based fog changes.
+]]
+local function updateTerrainFog(terrainFactor: number)
+    if not atmosphere then
+        return
+    end
+
+    local targetFogDensity = calculateFogDensity(currentPsi, terrainFactor)
+    local targetHaze = 1 + currentPsi * 4 + terrainFactor * 2
+
+    local atmTween = TweenService:Create(atmosphere, TERRAIN_TWEEN_INFO, {
+        Density = targetFogDensity,
+        Haze = targetHaze,
+    })
+    atmTween:Play()
+end
+
+--[[
     Handle PSI updates from server.
 ]]
 PsiUpdateEvent.OnClientEvent:Connect(function(psi: number)
     currentPsi = psi
-    updateAtmosphere(currentPsi, currentStateHealth)
+    updateAtmosphere(currentPsi, currentStateHealth, currentTerrainFactor)
 end)
 
 --[[
@@ -242,7 +323,27 @@ end)
 StateUpdateEvent.OnClientEvent:Connect(function(state: { N: number, E: number, W: number, S: number, psi: number })
     currentPsi = state.psi
     currentStateHealth = state.S
-    updateAtmosphere(currentPsi, currentStateHealth)
+    updateAtmosphere(currentPsi, currentStateHealth, currentTerrainFactor)
+end)
+
+--[[
+    Continuous terrain height monitoring for local fog adjustments.
+    Runs on heartbeat but throttled to TERRAIN_FOG_UPDATE_INTERVAL.
+]]
+RunService.Heartbeat:Connect(function()
+    local currentTime = os.clock()
+    if currentTime - lastTerrainUpdate < TERRAIN_FOG_UPDATE_INTERVAL then
+        return
+    end
+    lastTerrainUpdate = currentTime
+
+    local newTerrainFactor = calculateTerrainFactor()
+
+    -- Only update if terrain factor changed significantly (avoid unnecessary tweens)
+    if math.abs(newTerrainFactor - currentTerrainFactor) > 0.05 then
+        currentTerrainFactor = newTerrainFactor
+        updateTerrainFog(currentTerrainFactor)
+    end
 end)
 
 -- Initialize
@@ -250,10 +351,12 @@ initializeLighting()
 atmosphere = getOrCreateAtmosphere()
 
 -- Set initial atmosphere
-updateAtmosphere(currentPsi, currentStateHealth)
+currentTerrainFactor = calculateTerrainFactor()
+updateAtmosphere(currentPsi, currentStateHealth, currentTerrainFactor)
 
 print("")
 print("Atmosphere system running!")
 print("  Sky color responds to Political Stress (PSI)")
-print("  Fog density responds to State Health (S)")
-print(string.format("  Current state: PSI=%.2f, S=%.2f", currentPsi, currentStateHealth))
+print("  Fog density responds to PSI (primary) and terrain height (secondary)")
+print("  Low-lying areas experience denser fog")
+print(string.format("  Current state: PSI=%.2f, S=%.2f, Terrain=%.2f", currentPsi, currentStateHealth, currentTerrainFactor))
