@@ -22,7 +22,7 @@ local RAYCAST_DISTANCE = 1000 -- Maximum raycast distance
 -- Raycast parameters for terrain detection
 local raycastParams: RaycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Include
-raycastParams.FilterDescendantsInstances = {workspace.Terrain}
+raycastParams.FilterDescendantsInstances = { workspace.Terrain }
 raycastParams.IgnoreWater = true
 
 --[[
@@ -65,7 +65,7 @@ end
         print("Surface normal:", info.normal)
         print("Material:", info.material)
 ]]
-function TerrainUtils.getGroundInfo(x: number, z: number): {y: number, normal: Vector3, material: Enum.Material?}
+function TerrainUtils.getGroundInfo(x: number, z: number): { y: number, normal: Vector3, material: Enum.Material? }
     local origin = Vector3.new(x, SKY_HEIGHT, z)
     local direction = Vector3.new(0, -RAYCAST_DISTANCE, 0)
 
@@ -110,9 +110,7 @@ function TerrainUtils.placeOnGround(model: Model, x: number, z: number, yOffset:
         local _, size = model:GetBoundingBox()
         local baseOffset = size.Y / 2
 
-        model:SetPrimaryPartCFrame(
-            CFrame.new(x, groundY + baseOffset + offset, z)
-        )
+        model:SetPrimaryPartCFrame(CFrame.new(x, groundY + baseOffset + offset, z))
     else
         warn("[TerrainUtils] Model has no PrimaryPart set:", model.Name)
         -- Try to position anyway using MoveTo
@@ -278,9 +276,9 @@ function TerrainUtils.getTerrainProfile(
     endX: number,
     endZ: number,
     samples: number?
-): {Vector3}
+): { Vector3 }
     local numSamples = samples or 10
-    local points: {Vector3} = {}
+    local points: { Vector3 } = {}
 
     for i = 0, numSamples - 1 do
         local t = i / (numSamples - 1)

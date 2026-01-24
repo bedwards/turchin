@@ -22,21 +22,21 @@ local SDT = {}
 
 -- Type definitions for SDT state and parameters
 export type State = {
-    N: number,    -- Population (normalized 0-1)
-    E: number,    -- Elite population (normalized 0-1)
-    W: number,    -- Real wages / well-being (normalized 0-1)
-    S: number,    -- State fiscal health (normalized 0-1)
-    psi: number,  -- Political Stress Index (normalized 0-1)
+    N: number, -- Population (normalized 0-1)
+    E: number, -- Elite population (normalized 0-1)
+    W: number, -- Real wages / well-being (normalized 0-1)
+    S: number, -- State fiscal health (normalized 0-1)
+    psi: number, -- Political Stress Index (normalized 0-1)
 }
 
 export type Params = {
-    r: number,      -- Population growth rate
-    K: number,      -- Carrying capacity
-    alpha: number,  -- Elite recruitment rate
-    beta: number,   -- Elite decay rate
-    gamma: number,  -- Wage recovery rate
-    theta: number,  -- PSI accumulation rate
-    delta: number,  -- State recovery rate
+    r: number, -- Population growth rate
+    K: number, -- Carrying capacity
+    alpha: number, -- Elite recruitment rate
+    beta: number, -- Elite decay rate
+    gamma: number, -- Wage recovery rate
+    theta: number, -- PSI accumulation rate
+    delta: number, -- State recovery rate
     epsilon: number, -- Elite competition effect
 }
 
@@ -46,14 +46,14 @@ export type Params = {
 ]]
 function SDT.getDefaultParams(): Params
     return {
-        r = 0.05,       -- Population growth rate
-        K = 1.0,        -- Carrying capacity
-        alpha = 0.03,   -- Elite recruitment
-        beta = 0.02,    -- Elite decay
-        gamma = 0.04,   -- Wage recovery
-        theta = 0.08,   -- PSI accumulation (key for music transitions)
-        delta = 0.03,   -- State recovery
-        epsilon = 0.5,  -- Elite competition effect
+        r = 0.05, -- Population growth rate
+        K = 1.0, -- Carrying capacity
+        alpha = 0.03, -- Elite recruitment
+        beta = 0.02, -- Elite decay
+        gamma = 0.04, -- Wage recovery
+        theta = 0.08, -- PSI accumulation (key for music transitions)
+        delta = 0.03, -- State recovery
+        epsilon = 0.5, -- Elite competition effect
     }
 end
 
@@ -62,10 +62,10 @@ end
 ]]
 function SDT.getDefaultState(): State
     return {
-        N = 0.5,    -- 50% of carrying capacity
-        E = 0.1,    -- 10% elite population
-        W = 0.7,    -- Good wages
-        S = 0.8,    -- Healthy state
+        N = 0.5, -- 50% of carrying capacity
+        E = 0.1, -- 10% elite population
+        W = 0.7, -- Good wages
+        S = 0.8, -- Healthy state
         psi = 0.05, -- Low stress
     }
 end
@@ -155,7 +155,7 @@ end
     Returns 1-6 corresponding to the track thresholds.
 ]]
 function SDT.getMusicTrackIndex(psi: number): number
-    local thresholds = {0.08, 0.18, 0.32, 0.52, 0.76, 1.00}
+    local thresholds = { 0.08, 0.18, 0.32, 0.52, 0.76, 1.00 }
     for i, threshold in ipairs(thresholds) do
         if psi <= threshold then
             return i

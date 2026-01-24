@@ -2,13 +2,19 @@
 --[[
     Controls.server.luau
 
-    Creates pressure plate controls for player interaction with PSI.
+    Creates pressure plate controls for player interaction with SDT parameters.
 
     Features:
-    - Two plates in the Forum: Red (decrease PSI) and Green (increase PSI)
-    - Gradual PSI adjustment while standing on plate (~0.05/sec)
-    - Visual feedback: plates glow brighter when active
-    - Audio feedback: tone on activation
+    - 4 control stations placed at key Roman locations
+    - Each station has paired red/green plates for bidirectional control
+    - Gradual parameter adjustment while standing on plate
+    - Visual and audio feedback
+
+    Control Stations:
+    1. PSI Control (Forum) - Direct PSI adjustment for testing
+    2. Senate Seats (Near Forum) - Controls elite recruitment rate (alpha)
+    3. Grain Dole (Market) - Controls wage recovery rate (gamma)
+    4. Legion Funding (Temple District) - Controls state spending/recovery (delta)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,23 +33,29 @@ local ControlInputEvent = RemoteEvents:WaitForChild("ControlInput")
 
 -- Control plate configuration
 local PLATE_SIZE = Vector3.new(8, 1, 8)
-local PLATE_SPACING = 15 -- Distance between plates
-local FORUM_CENTER_X = 0
-local FORUM_CENTER_Z = 0
+local PLATE_SPACING = 12 -- Distance between red/green plates at each station
+
+-- Station locations (from TerrainGenerator flat zones)
+local STATION_LOCATIONS = {
+    forum = { x = 0, z = 0 },
+    senateForum = { x = 30, z = -25 }, -- Near Forum, offset
+    market = { x = 40, z = -80 },
+    templeDistrict = { x = -80, z = 60 },
+}
 
 -- Track which players are on which plates
-local playersOnPlates: {[Player]: string} = {}
+local playersOnPlates: { [Player]: string } = {}
+
+-- Control types for different parameters:
+-- "decrease_psi", "increase_psi"
+-- "decrease_alpha", "increase_alpha"
+-- "decrease_gamma", "increase_gamma"
+-- "decrease_delta", "increase_delta"
 
 --[[
     Create a control plate at the specified position.
 ]]
-local function createControlPlate(
-    name: string,
-    x: number,
-    z: number,
-    color: Color3,
-    controlType: string
-): Part
+local function createControlPlate(name: string, x: number, z: number, color: Color3, controlType: string): Part
     local groundY = TerrainUtils.getGroundY(x, z)
 
     local plate = Instance.new("Part")
@@ -76,10 +88,84 @@ local function createControlPlate(
 
     plate.Parent = workspace
 
-    print(string.format("[Controls] Created %s plate at (%.0f, %.0f, %.0f)",
-        name, x, groundY, z))
+    print(string.format("[Controls] Created %s plate at (%.0f, %.1f, %.0f)", name, x, groundY, z))
 
     return plate
+end
+
+--[[
+    Create a label above a plate.
+]]
+local function createPlateLabel(plate: Part, text: string)
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "PlateLabel"
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 4, 0)
+    billboard.Adornee = plate
+    billboard.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextStrokeTransparency = 0.5
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboard
+
+    billboard.Parent = plate
+end
+
+--[[
+    Create a station title above the control area.
+]]
+local function createStationTitle(x: number, z: number, title: string, subtitle: string)
+    local groundY = TerrainUtils.getGroundY(x, z)
+
+    -- Create an invisible anchor part
+    local anchor = Instance.new("Part")
+    anchor.Name = title .. "_Title"
+    anchor.Size = Vector3.new(1, 1, 1)
+    anchor.Position = Vector3.new(x, groundY + 8, z)
+    anchor.Anchored = true
+    anchor.Transparency = 1
+    anchor.CanCollide = false
+    anchor.Parent = workspace
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "StationTitle"
+    billboard.Size = UDim2.new(0, 300, 0, 80)
+    billboard.StudsOffset = Vector3.new(0, 0, 0)
+    billboard.Adornee = anchor
+    billboard.AlwaysOnTop = true
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, 0, 0.6, 0)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 220, 150)
+    titleLabel.TextStrokeTransparency = 0.3
+    titleLabel.TextScaled = true
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Parent = billboard
+
+    local subtitleLabel = Instance.new("TextLabel")
+    subtitleLabel.Name = "Subtitle"
+    subtitleLabel.Size = UDim2.new(1, 0, 0.4, 0)
+    subtitleLabel.Position = UDim2.new(0, 0, 0.6, 0)
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Text = subtitle
+    subtitleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    subtitleLabel.TextStrokeTransparency = 0.5
+    subtitleLabel.TextScaled = true
+    subtitleLabel.Font = Enum.Font.Gotham
+    subtitleLabel.Parent = billboard
+
+    billboard.Parent = anchor
 end
 
 --[[
@@ -130,10 +216,11 @@ local function isCharacterOnPlate(character: Model, plate: Part): boolean
     local dy = charPos.Y - platePos.Y
 
     -- Within horizontal bounds and above plate (standing on it)
-    return dx < plateSize.X / 2 + 2 and
-           dz < plateSize.Z / 2 + 2 and
-           dy > 0 and dy < 5
+    return dx < plateSize.X / 2 + 2 and dz < plateSize.Z / 2 + 2 and dy > 0 and dy < 5
 end
+
+-- Store all plates for detection
+local allPlates: { Part } = {}
 
 --[[
     Handle player entering plate area.
@@ -147,12 +234,8 @@ local function onPlayerEnterPlate(player: Player, plate: Part, controlType: stri
     setPlateActive(plate, true)
     playActivationSound(plate)
 
-    -- Notify game loop
+    -- Notify client
     ControlInputEvent:FireClient(player, controlType, true)
-
-    -- For server-side processing, fire to server (actually we need to track server-side)
-    -- The GameLoop already listens on OnServerEvent, but we need client to fire
-    -- So we'll handle this differently - track on server
 
     print(string.format("[Controls] %s stepped on %s plate", player.Name, controlType))
 end
@@ -171,53 +254,106 @@ local function onPlayerLeavePlate(player: Player, plate: Part, controlType: stri
     print(string.format("[Controls] %s left %s plate", player.Name, controlType))
 end
 
--- Create the control plates in the Forum
-print("==============================================")
-print("  CREATING CONTROL PLATES")
-print("==============================================")
-print("")
-
-local decreasePlate = createControlPlate(
-    "DecreasePsiPlate",
-    FORUM_CENTER_X - PLATE_SPACING,
-    FORUM_CENTER_Z,
-    Color3.fromRGB(255, 100, 100), -- Red
-    "decrease_psi"
+--[[
+    Create a control station with paired red/green plates.
+]]
+local function createControlStation(
+    stationName: string,
+    centerX: number,
+    centerZ: number,
+    decreaseType: string,
+    increaseType: string,
+    decreaseLabel: string,
+    increaseLabel: string,
+    stationTitle: string,
+    stationSubtitle: string
 )
+    print(string.format("\n[Controls] Creating %s station at (%.0f, %.0f)", stationName, centerX, centerZ))
 
-local increasePlate = createControlPlate(
-    "IncreasePsiPlate",
-    FORUM_CENTER_X + PLATE_SPACING,
-    FORUM_CENTER_Z,
-    Color3.fromRGB(100, 255, 100), -- Green
-    "increase_psi"
-)
+    -- Create decrease (red) plate
+    local decreasePlate = createControlPlate(
+        stationName .. "_Decrease",
+        centerX - PLATE_SPACING / 2,
+        centerZ,
+        Color3.fromRGB(255, 100, 100), -- Red
+        decreaseType
+    )
+    createPlateLabel(decreasePlate, decreaseLabel)
+    table.insert(allPlates, decreasePlate)
 
--- Create labels above plates
-local function createPlateLabel(plate: Part, text: string)
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "PlateLabel"
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 4, 0)
-    billboard.Adornee = plate
-    billboard.AlwaysOnTop = true
+    -- Create increase (green) plate
+    local increasePlate = createControlPlate(
+        stationName .. "_Increase",
+        centerX + PLATE_SPACING / 2,
+        centerZ,
+        Color3.fromRGB(100, 255, 100), -- Green
+        increaseType
+    )
+    createPlateLabel(increasePlate, increaseLabel)
+    table.insert(allPlates, increasePlate)
 
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.TextStrokeTransparency = 0.5
-    label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
-    label.Parent = billboard
+    -- Create station title
+    createStationTitle(centerX, centerZ, stationTitle, stationSubtitle)
 
-    billboard.Parent = plate
+    return decreasePlate, increasePlate
 end
 
-createPlateLabel(decreasePlate, "DECREASE STRESS")
-createPlateLabel(increasePlate, "INCREASE STRESS")
+-- Create control stations
+print("==============================================")
+print("  CREATING CONTROL STATIONS")
+print("==============================================")
+
+-- Station 1: PSI Control at Forum
+createControlStation(
+    "PSI",
+    STATION_LOCATIONS.forum.x,
+    STATION_LOCATIONS.forum.z,
+    "decrease_psi",
+    "increase_psi",
+    "DECREASE STRESS",
+    "INCREASE STRESS",
+    "POLITICAL STRESS",
+    "Direct PSI Control"
+)
+
+-- Station 2: Senate Seats (Elite Recruitment - alpha)
+createControlStation(
+    "Senate",
+    STATION_LOCATIONS.senateForum.x,
+    STATION_LOCATIONS.senateForum.z,
+    "decrease_alpha",
+    "increase_alpha",
+    "FEWER SEATS",
+    "MORE SEATS",
+    "SENATE SEATS",
+    "Elite Recruitment Rate"
+)
+
+-- Station 3: Grain Dole (Wage Recovery - gamma)
+createControlStation(
+    "GrainDole",
+    STATION_LOCATIONS.market.x,
+    STATION_LOCATIONS.market.z,
+    "decrease_gamma",
+    "increase_gamma",
+    "REDUCE DOLE",
+    "INCREASE DOLE",
+    "GRAIN DOLE",
+    "Worker Wage Recovery"
+)
+
+-- Station 4: Legion Funding (State Recovery - delta)
+createControlStation(
+    "Legion",
+    STATION_LOCATIONS.templeDistrict.x,
+    STATION_LOCATIONS.templeDistrict.z,
+    "decrease_delta",
+    "increase_delta",
+    "CUT FUNDING",
+    "RAISE FUNDING",
+    "LEGION FUNDING",
+    "State Fiscal Recovery"
+)
 
 -- Polling loop to detect players on plates
 -- (More reliable than Touched events for this use case)
@@ -226,28 +362,43 @@ task.spawn(function()
         for _, player in ipairs(Players:GetPlayers()) do
             local character = player.Character
             if character then
-                -- Check decrease plate
-                local onDecrease = isCharacterOnPlate(character, decreasePlate)
-                if onDecrease and playersOnPlates[player] ~= "decrease_psi" then
-                    -- Leaving increase plate if on it
-                    if playersOnPlates[player] == "increase_psi" then
-                        onPlayerLeavePlate(player, increasePlate, "increase_psi")
+                local foundPlate: Part? = nil
+                local foundControlType: string? = nil
+
+                -- Check all plates
+                for _, plate in ipairs(allPlates) do
+                    if isCharacterOnPlate(character, plate) then
+                        foundPlate = plate
+                        foundControlType = plate:GetAttribute("ControlType") :: string?
+                        break
                     end
-                    onPlayerEnterPlate(player, decreasePlate, "decrease_psi")
-                elseif not onDecrease and playersOnPlates[player] == "decrease_psi" then
-                    onPlayerLeavePlate(player, decreasePlate, "decrease_psi")
                 end
 
-                -- Check increase plate
-                local onIncrease = isCharacterOnPlate(character, increasePlate)
-                if onIncrease and playersOnPlates[player] ~= "increase_psi" then
-                    -- Leaving decrease plate if on it
-                    if playersOnPlates[player] == "decrease_psi" then
-                        onPlayerLeavePlate(player, decreasePlate, "decrease_psi")
+                -- Handle plate transitions
+                local currentPlateType = playersOnPlates[player]
+
+                if foundControlType and currentPlateType ~= foundControlType then
+                    -- Leaving current plate (if any)
+                    if currentPlateType then
+                        for _, plate in ipairs(allPlates) do
+                            if plate:GetAttribute("ControlType") == currentPlateType then
+                                onPlayerLeavePlate(player, plate, currentPlateType)
+                                break
+                            end
+                        end
                     end
-                    onPlayerEnterPlate(player, increasePlate, "increase_psi")
-                elseif not onIncrease and playersOnPlates[player] == "increase_psi" then
-                    onPlayerLeavePlate(player, increasePlate, "increase_psi")
+                    -- Entering new plate
+                    if foundPlate and foundControlType then
+                        onPlayerEnterPlate(player, foundPlate, foundControlType)
+                    end
+                elseif not foundControlType and currentPlateType then
+                    -- Left all plates
+                    for _, plate in ipairs(allPlates) do
+                        if plate:GetAttribute("ControlType") == currentPlateType then
+                            onPlayerLeavePlate(player, plate, currentPlateType)
+                            break
+                        end
+                    end
                 end
             end
         end
@@ -273,29 +424,37 @@ ControlBindable.Parent = ReplicatedStorage
 task.spawn(function()
     while true do
         -- Count players on each plate type
-        local decreaseCount = 0
-        local increaseCount = 0
+        local controlCounts: { [string]: number } = {
+            decrease_psi = 0,
+            increase_psi = 0,
+            decrease_alpha = 0,
+            increase_alpha = 0,
+            decrease_gamma = 0,
+            increase_gamma = 0,
+            decrease_delta = 0,
+            increase_delta = 0,
+        }
 
         for _, controlType in pairs(playersOnPlates) do
-            if controlType == "decrease_psi" then
-                decreaseCount = decreaseCount + 1
-            elseif controlType == "increase_psi" then
-                increaseCount = increaseCount + 1
-            end
+            controlCounts[controlType] = (controlCounts[controlType] or 0) + 1
         end
 
         -- Fire control state to any listeners
-        ControlBindable:Fire({
-            decreasePsi = decreaseCount,
-            increasePsi = increaseCount,
-        })
+        ControlBindable:Fire(controlCounts)
 
         task.wait(0.1)
     end
 end)
 
 print("")
-print("Control plates ready!")
-print("  Red plate (-15, Y, 0): Decrease Political Stress")
-print("  Green plate (+15, Y, 0): Increase Political Stress")
-print("Stand on a plate to adjust PSI by ~0.05/second")
+print("==============================================")
+print("  CONTROL STATIONS READY")
+print("==============================================")
+print("")
+print("4 Control Stations:")
+print("  1. Political Stress (Forum) - Direct PSI control")
+print("  2. Senate Seats (Near Forum) - Elite recruitment rate")
+print("  3. Grain Dole (Market) - Wage recovery rate")
+print("  4. Legion Funding (Temple) - State fiscal recovery")
+print("")
+print("Stand on plates to adjust parameters (~0.05/second)")

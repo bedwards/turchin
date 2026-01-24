@@ -22,7 +22,7 @@ export type MusicTrack = {
 }
 
 -- PSI-based music tracks (from peaceful to crisis)
-local MUSIC_TRACKS: {MusicTrack} = {
+local MUSIC_TRACKS: { MusicTrack } = {
     { maxPsi = 0.08, id = "rbxassetid://123517555949581", name = "Dawn" },
     { maxPsi = 0.18, id = "rbxassetid://92805060343276", name = "Forum" },
     { maxPsi = 0.32, id = "rbxassetid://122383615563909", name = "Eternal" },
@@ -32,14 +32,14 @@ local MUSIC_TRACKS: {MusicTrack} = {
 }
 
 -- Crossfade configuration
-local CROSSFADE_DURATION = 2.0  -- seconds for crossfade
-local MAX_VOLUME = 0.5          -- maximum track volume
+local CROSSFADE_DURATION = 2.0 -- seconds for crossfade
+local MAX_VOLUME = 0.5 -- maximum track volume
 
 --[[
     Get the list of music tracks.
     Used by the client to preload all tracks.
 ]]
-function MusicManager.getTracks(): {MusicTrack}
+function MusicManager.getTracks(): { MusicTrack }
     return MUSIC_TRACKS
 end
 
@@ -86,8 +86,8 @@ end
     - Within 0.02 of threshold: begin fading out current
     - At threshold: fully transitioned to next track
 ]]
-function MusicManager.calculateCrossfadeVolumes(psi: number): {[number]: number}
-    local volumes: {[number]: number} = {}
+function MusicManager.calculateCrossfadeVolumes(psi: number): { [number]: number }
+    local volumes: { [number]: number } = {}
 
     -- Initialize all volumes to 0
     for i = 1, #MUSIC_TRACKS do
@@ -133,8 +133,8 @@ end
 --[[
     Get all track names as a list (for debug display).
 ]]
-function MusicManager.getAllTrackNames(): {string}
-    local names: {string} = {}
+function MusicManager.getAllTrackNames(): { string }
+    local names: { string } = {}
     for _, track in ipairs(MUSIC_TRACKS) do
         table.insert(names, track.name)
     end

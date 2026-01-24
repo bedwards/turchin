@@ -49,7 +49,7 @@ local elapsed = os.clock() - startTime
 
 print("")
 print("==============================================")
-print(string.format("  TERRAIN GENERATION COMPLETE"))
+print("  TERRAIN GENERATION COMPLETE")
 print(string.format("  Total time: %.2f seconds", elapsed))
 print("==============================================")
 
@@ -59,15 +59,17 @@ print("Building Zone Locations:")
 print("------------------------")
 
 for _, zone in ipairs(TerrainGenerator.getFlatZones()) do
-    print(string.format(
-        "  %s: Center (%.0f, %.0f), Size (%.0f x %.0f), Elevation %.0f",
-        zone.name,
-        zone.centerX,
-        zone.centerZ,
-        zone.radiusX * 2,
-        zone.radiusZ * 2,
-        zone.elevation
-    ))
+    print(
+        string.format(
+            "  %s: Center (%.0f, %.0f), Size (%.0f x %.0f), Elevation %.0f",
+            zone.name,
+            zone.centerX,
+            zone.centerZ,
+            zone.radiusX * 2,
+            zone.radiusZ * 2,
+            zone.elevation
+        )
+    )
 end
 
 print("")
