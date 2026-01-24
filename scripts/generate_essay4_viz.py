@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.animation import FuncAnimation
+import altair as alt
 import numpy as np
 import pandas as pd
 
@@ -605,6 +606,85 @@ def generate_all_three_indices():
     print("  Saved: essay-004-three-indices.png")
 
 
+# ============================================================================
+# Altair Charts Section
+# These charts are generated with Altair for the essay's inline data visualizations.
+# ============================================================================
+
+def save_altair_chart(chart: alt.Chart, path: Path, scale_factor: int = 2) -> None:
+    """Save an Altair chart as PNG."""
+    chart.save(str(path), scale_factor=scale_factor)
+
+
+def generate_altair_real_wages_chart():
+    """Generate real wages chart with proper y-axis."""
+    print("Generating Altair real wages chart...")
+    
+    df, _ = get_us_data()
+    
+    chart = alt.Chart(df).mark_area(
+        color='#059669',  # Green
+        opacity=0.7,
+        line={'color': '#059669', 'strokeWidth': 2},
+        clip=True
+    ).encode(
+        x=alt.X('year:Q', title='Year', axis=alt.Axis(format='d')),
+        y=alt.Y('real_wage_index:Q', 
+                title='Real Wage Index (1960 = 100)',
+                scale=alt.Scale(domain=[0, 120]))
+    ).properties(
+        width=800,
+        height=400,
+        title='Real Wages in America (1780-2025)'
+    )
+    
+    save_altair_chart(chart, CHARTS_DIR / 'essay-004-real-wages.png')
+    print("  Saved: essay-004-real-wages.png")
+
+
+def generate_altair_relative_wages_chart():
+    """Generate relative wages chart with proper y-axis clipping.
+    
+    Fix for issue #80: Area was extending below x-axis.
+    Solution: Set explicit y-axis domain starting at 0 and use clip=True.
+    """
+    print("Generating Altair relative wages chart...")
+    
+    df, _ = get_us_data()
+    
+    chart = alt.Chart(df).mark_area(
+        color='#d97706',  # Orange
+        opacity=0.7,
+        line={'color': '#d97706', 'strokeWidth': 2},
+        clip=True  # Clips the area to chart bounds - fixes issue #80
+    ).encode(
+        x=alt.X('year:Q', title='Year', axis=alt.Axis(format='d')),
+        y=alt.Y('relative_wage_index:Q', 
+                title='Relative Wage Index (Wage/GDP per capita)',
+                scale=alt.Scale(domain=[0, 120]))  # Explicit domain starting at 0
+    ).properties(
+        width=800,
+        height=400,
+        title='Relative Wages in America (1780-2025)'
+    )
+    
+    save_altair_chart(chart, CHARTS_DIR / 'essay-004-relative-wages.png')
+    print("  Saved: essay-004-relative-wages.png")
+
+
+def generate_altair_charts():
+    """Generate all Altair charts for Essay 004."""
+    print("-" * 40)
+    print("Generating Altair Charts")
+    print("-" * 40)
+    
+    generate_altair_real_wages_chart()
+    generate_altair_relative_wages_chart()
+    
+    print("-" * 40)
+    print("Altair charts complete!")
+
+
 def main():
     """Generate all visualizations for Essay 004."""
     print("=" * 60)
@@ -623,6 +703,9 @@ def main():
     
     # Animation
     generate_animated_psi()
+    
+    # Altair data charts
+    generate_altair_charts()
     
     print("=" * 60)
     print("All Essay 004 visualizations generated!")
