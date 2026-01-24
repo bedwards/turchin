@@ -87,10 +87,10 @@ AssetConfig.Sounds = {
     PlateStep = "rbxassetid://6042053626", -- UI click
     PlateActivate = "rbxassetid://421058925", -- Soft chime
 
-    -- Ambient
-    CrowdMurmur = "rbxassetid://9116367423", -- Crowd ambient
-    Birds = "rbxassetid://9116367423", -- Bird chirps
-    Wind = "rbxassetid://9114082060", -- Wind ambient
+    -- Ambient (replaced 403-erroring IDs with working public sounds)
+    CrowdMurmur = "rbxassetid://926658585", -- People talking background
+    Birds = "rbxassetid://4915214793", -- Ambient birds
+    Wind = "rbxassetid://3645269782", -- Wind sound effect
 
     -- Effects
     Footstep = "rbxassetid://5892287796", -- Stone footstep
