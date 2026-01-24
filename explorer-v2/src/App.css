@@ -320,6 +320,16 @@ body {
   cursor: not-allowed;
 }
 
+.run-btn.auto-run-active {
+  background: var(--success-color);
+  opacity: 0.7;
+}
+
+.run-btn.auto-run-active:hover {
+  background: var(--success-color);
+  transform: none;
+}
+
 /* Status bar */
 .status-bar {
   display: flex;

@@ -4,13 +4,14 @@
  * Interactive exploration of Structural-Demographic Theory dynamics.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { SDTModel, SimulationResult } from './models/sdt';
 import { SDTParams, SDTState, DEFAULT_PARAMS, DEFAULT_STATE } from './models/parameters';
 import { ParameterSliders } from './components/ParameterSliders';
 import { TimeSeriesChart } from './components/TimeSeriesChart';
 import { PhaseSpaceChart } from './components/PhaseSpaceChart';
 import { InstabilityChart } from './components/InstabilityChart';
+import { formatMetric } from './utils/formatNumber';
 import './App.css';
 
 function App() {
@@ -21,6 +22,10 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [execTime, setExecTime] = useState<number | null>(null);
   const [autoRun, setAutoRun] = useState(true);
+
+  // Track if parameters have changed since last simulation
+  const [hasUnsimulatedChanges, setHasUnsimulatedChanges] = useState(false);
+  const lastSimulatedConfig = useRef<string | null>(null);
 
   // Detect dark mode
   const [darkMode, setDarkMode] = useState(() =>
@@ -34,10 +39,16 @@ function App() {
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
+  // Create a config key to track what's been simulated
+  const getConfigKey = useCallback(() => {
+    return JSON.stringify({ params, initialState, duration });
+  }, [params, initialState, duration]);
+
   // Run simulation
   const runSimulation = useCallback(() => {
     setIsRunning(true);
     const start = performance.now();
+    const configKey = getConfigKey();
 
     // Run in next tick to allow UI update
     setTimeout(() => {
@@ -48,8 +59,18 @@ function App() {
       setResult(simResult);
       setExecTime(elapsed);
       setIsRunning(false);
+      lastSimulatedConfig.current = configKey;
+      setHasUnsimulatedChanges(false);
     }, 0);
-  }, [params, initialState, duration]);
+  }, [params, initialState, duration, getConfigKey]);
+
+  // Track when parameters change but haven't been simulated yet
+  useEffect(() => {
+    const currentConfig = getConfigKey();
+    if (lastSimulatedConfig.current !== currentConfig) {
+      setHasUnsimulatedChanges(true);
+    }
+  }, [params, initialState, duration, getConfigKey]);
 
   // Auto-run on parameter change
   useEffect(() => {
@@ -129,11 +150,12 @@ function App() {
               </label>
             </div>
             <button
-              className="run-btn"
+              className={'run-btn' + (autoRun && !hasUnsimulatedChanges ? ' auto-run-active' : '')}
               onClick={runSimulation}
-              disabled={isRunning}
+              disabled={isRunning || (autoRun && !hasUnsimulatedChanges)}
+              title={autoRun && !hasUnsimulatedChanges ? 'Auto-run is enabled - simulation runs automatically on parameter changes' : ''}
             >
-              {isRunning ? 'Running...' : 'Run Simulation'}
+              {isRunning ? 'Running...' : autoRun && !hasUnsimulatedChanges ? 'Auto-Running' : 'Run Simulation'}
             </button>
           </section>
         </aside>
@@ -144,26 +166,26 @@ function App() {
             <div className="info-grid">
               <div className="info-card">
                 <div className="info-label">Final Population</div>
-                <div className="info-value">{result.N[result.N.length - 1].toFixed(3)}</div>
+                <div className="info-value">{formatMetric(result.N[result.N.length - 1], 'population')}</div>
               </div>
               <div className="info-card">
                 <div className="info-label">Final Elites</div>
-                <div className="info-value">{result.E[result.E.length - 1].toFixed(3)}</div>
+                <div className="info-value">{formatMetric(result.E[result.E.length - 1], 'elites')}</div>
               </div>
               <div className="info-card">
                 <div className="info-label">Final Wages</div>
-                <div className="info-value">{result.W[result.W.length - 1].toFixed(3)}</div>
+                <div className="info-value">{formatMetric(result.W[result.W.length - 1], 'wages')}</div>
               </div>
               <div className="info-card">
                 <div className="info-label">Final State</div>
-                <div className="info-value">{result.S[result.S.length - 1].toFixed(3)}</div>
+                <div className="info-value">{formatMetric(result.S[result.S.length - 1], 'state')}</div>
               </div>
               <div className="info-card">
                 <div className={'info-label' + (psiDanger ? ' danger' : '')}>
                   Final PSI
                 </div>
                 <div className={'info-value' + (psiDanger ? ' danger' : '')}>
-                  {result.psi[result.psi.length - 1].toFixed(3)}
+                  {formatMetric(result.psi[result.psi.length - 1], 'psi')}
                 </div>
               </div>
             </div>
